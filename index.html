@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WealthPulse | Connected Dashboard</title>
+    <title>WealthPulse | Power BI Style Dashboard</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -22,253 +22,335 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: { 500: '#3B82F6', 600: '#2563EB', 900: '#1E3A8A' },
-                        dark: { 800: '#1e293b', 900: '#0f172a' }
+                        // Power BI Corporate Colors
+                        pbi: { 
+                            base: '#F3F4F6', // Canvas Gray
+                            card: '#FFFFFF',
+                            darkBase: '#18181B', // Zinc 900
+                            darkCard: '#27272A', // Zinc 800
+                            primary: '#0ea5e9', // Sky 500
+                            accent: '#eab308'  // Yellow 500
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] // Power BI default font feel
                     }
                 }
             }
         }
     </script>
     <style>
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .light .glass { background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(0,0,0,0.05); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .chart-container { width: 100%; min-height: 300px; }
-        /* Transition cho Dark mode toggle */
-        body { transition: background-color 0.3s, color 0.3s; }
+        /* Power BI Card Style */
+        .pbi-card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px; /* Bo góc nhẹ, chuyên nghiệp hơn */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease-in-out;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .dark .pbi-card {
+            background-color: #27272A;
+            border-color: #3f3f46;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Layout Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: auto auto auto;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        /* Scrollbar mảnh như Excel */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+        
+        .chart-container { width: 100%; height: 100%; min-height: 280px; }
         [v-cloak] { display: none; }
     </style>
 </head>
 
-<body class="bg-gray-100 text-slate-800 dark:bg-dark-900 dark:text-slate-200 h-screen overflow-hidden font-sans">
+<body class="bg-pbi-base text-slate-800 dark:bg-black dark:text-slate-200 h-screen overflow-hidden font-sans transition-colors duration-200">
 
     <div id="app" v-cloak class="h-full flex flex-col">
 
-        <div v-if="!user" class="fixed inset-0 z-50 flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1639322537228-f710d846310a?w=1920&q=80')] bg-cover bg-center">
-            <div class="absolute inset-0 bg-dark-900/90 backdrop-blur-md"></div>
-            <div class="relative z-10 glass p-8 rounded-2xl max-w-md w-full text-center shadow-2xl mx-4">
-                <div class="w-16 h-16 bg-gradient-to-tr from-brand-500 to-cyan-400 rounded-xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-brand-500/30">
-                    <i data-lucide="activity" class="text-white w-8 h-8"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-white mb-2">WealthPulse</h1>
-                <p class="text-slate-400 mb-8">Dashboard tài chính thông minh<br>Đồng bộ Cloud - Phân tích chuyên sâu</p>
-                <button @click="login" class="w-full bg-white hover:bg-gray-50 text-slate-900 font-bold py-3.5 rounded-xl flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-xl">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6">
-                    <span>Đăng nhập với Google</span>
+        <div v-if="!user" class="fixed inset-0 z-50 flex items-center justify-center bg-[#252423]">
+            <div class="bg-white dark:bg-zinc-800 p-8 rounded-lg shadow-2xl max-w-sm w-full text-center border-t-4 border-[#F2C811]">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/cf/New_Power_BI_Logo.svg" class="w-16 h-16 mx-auto mb-4" alt="Logo">
+                <h1 class="text-2xl font-bold mb-2 dark:text-white">Wealth Analytics</h1>
+                <p class="text-gray-500 mb-8 text-sm">Sign in to access your dashboard</p>
+                <button @click="login" class="w-full bg-[#0078D4] hover:bg-[#005a9e] text-white font-semibold py-3 px-4 rounded transition flex items-center justify-center gap-2">
+                    <span>Sign in with Google</span>
                 </button>
             </div>
         </div>
 
         <div v-else class="flex h-full">
             
-            <aside class="hidden md:flex w-64 flex-col glass border-r border-slate-200 dark:border-white/5 z-20">
-                <div class="p-6 flex items-center gap-3">
-                    <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white"><i data-lucide="pie-chart" class="w-5 h-5"></i></div>
-                    <span class="font-bold text-lg tracking-tight">WealthPulse</span>
+            <aside class="hidden md:flex w-64 flex-col bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 z-20 shadow-xl">
+                <div class="h-14 flex items-center px-4 border-b border-gray-200 dark:border-zinc-800 bg-[#F2C811] dark:bg-[#F2C811] text-black">
+                    <i data-lucide="bar-chart-2" class="w-6 h-6 mr-2"></i>
+                    <span class="font-bold text-lg tracking-tight">Wealth BI</span>
                 </div>
-                <nav class="flex-1 px-4 space-y-2 mt-2">
+                
+                <nav class="flex-1 py-4 space-y-1">
                     <button v-for="page in pages" :key="page.id" @click="currentPage = page.id" 
-                        :class="['w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium', currentPage === page.id ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5']">
+                        :class="['w-full flex items-center gap-3 px-4 py-3 text-sm font-medium border-l-4 transition-all', 
+                        currentPage === page.id ? 'border-[#F2C811] bg-gray-100 dark:bg-white/5 text-black dark:text-white' : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5']">
                         <i :data-lucide="page.icon" class="w-5 h-5"></i> {{ page.label }}
                     </button>
                 </nav>
-                
-                <div class="p-4 border-t border-slate-200 dark:border-white/5 space-y-3">
-                    <button @click="toggleTheme" class="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-slate-200 dark:bg-slate-800 text-sm">
-                        <span>{{ isDark ? 'Dark Mode' : 'Light Mode' }}</span>
-                        <i :data-lucide="isDark ? 'moon' : 'sun'" class="w-4 h-4"></i>
-                    </button>
-                    <div class="flex items-center gap-3 px-1">
-                        <img :src="user.photoURL" class="w-8 h-8 rounded-full border border-slate-400">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-bold truncate">{{ user.displayName }}</p>
-                            <button @click="logout" class="text-xs text-red-500 hover:underline">Đăng xuất</button>
+
+                <div class="p-4 border-t border-gray-200 dark:border-zinc-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img :src="user.photoURL" class="w-8 h-8 rounded-full ring-2 ring-gray-200">
+                        <div class="text-xs overflow-hidden">
+                            <p class="font-bold truncate dark:text-gray-200">{{ user.displayName }}</p>
+                            <button @click="logout" class="text-red-500 hover:underline">Sign out</button>
                         </div>
                     </div>
+                    <button @click="toggleTheme" class="w-full py-2 bg-gray-200 dark:bg-zinc-800 rounded text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300">
+                        {{ isDark ? 'Switch to Light' : 'Switch to Dark' }}
+                    </button>
                 </div>
             </aside>
 
-            <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+            <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-[#EAEAEA] dark:bg-black">
                 
-                <header class="md:hidden h-14 glass border-b border-white/5 flex items-center justify-between px-4 z-30 shrink-0">
-                    <span class="font-bold text-lg">WealthPulse</span>
-                    <button @click="toggleTheme" class="p-2"><i :data-lucide="isDark ? 'moon' : 'sun'" class="w-5 h-5"></i></button>
+                <header v-if="currentPage === 'dashboard'" class="bg-white dark:bg-zinc-900 border-b border-gray-300 dark:border-zinc-700 p-2 flex items-center gap-4 z-30 shadow-sm shrink-0 overflow-x-auto">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-gray-400 px-2 border-r border-gray-300 dark:border-zinc-700">
+                        <i data-lucide="filter" class="w-4 h-4"></i> Filters:
+                    </div>
+                    
+                    <div class="flex flex-col">
+                        <label class="text-[10px] uppercase font-bold text-gray-400">Time Period</label>
+                        <select v-model="filters.month" class="bg-gray-50 dark:bg-zinc-800 border-none text-sm font-semibold focus:ring-0 cursor-pointer py-1 pl-0 pr-8">
+                            <option value="all">All History</option>
+                            <option v-for="m in availableMonths" :value="m">{{ m }}</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col border-l border-gray-200 dark:border-zinc-700 pl-4">
+                        <label class="text-[10px] uppercase font-bold text-gray-400">Transaction Type</label>
+                        <select v-model="filters.type" class="bg-gray-50 dark:bg-zinc-800 border-none text-sm font-semibold focus:ring-0 cursor-pointer py-1 pl-0 pr-8">
+                            <option value="all">Income & Expense</option>
+                            <option value="income">Income Only</option>
+                            <option value="expense">Expense Only</option>
+                        </select>
+                    </div>
+
+                    <div v-if="filters.visualCategory || filters.dateRange" class="flex items-center gap-2 ml-auto">
+                        <span v-if="filters.visualCategory" class="text-xs bg-[#F2C811] text-black px-3 py-1 rounded font-bold flex items-center gap-2 shadow-sm">
+                            Cat: {{ filters.visualCategory }} <button @click="filters.visualCategory = null"><i data-lucide="x" class="w-3 h-3"></i></button>
+                        </span>
+                        <span v-if="filters.dateRange" class="text-xs bg-[#0078D4] text-white px-3 py-1 rounded font-bold flex items-center gap-2 shadow-sm">
+                            Range Selection <button @click="filters.dateRange = null"><i data-lucide="x" class="w-3 h-3"></i></button>
+                        </span>
+                        <button @click="resetVisualFilters" class="text-xs text-red-500 hover:underline font-bold">Reset All</button>
+                    </div>
+
+                    <div class="ml-auto flex gap-1">
+                         <button @click="exportPDF" class="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded text-gray-600 dark:text-gray-300" title="Export PDF">
+                            <i data-lucide="file-down" class="w-5 h-5"></i>
+                        </button>
+                    </div>
                 </header>
 
-                <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6 scroll-smooth" id="main-view">
+                <div class="flex-1 overflow-y-auto" id="report-canvas">
                     
-                    <div v-if="currentPage === 'dashboard'" class="space-y-6">
+                    <div v-if="currentPage === 'dashboard'" class="dashboard-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
                         
-                        <div class="sticky top-0 z-20 glass rounded-xl p-3 mb-6 flex flex-wrap items-center gap-3 shadow-sm border border-slate-200 dark:border-white/5 backdrop-blur-xl">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="filter" class="w-4 h-4 text-brand-500"></i>
-                                <select v-model="filters.month" class="bg-transparent border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-sm outline-none focus:border-brand-500">
-                                    <option value="all">Tất cả tháng</option>
-                                    <option v-for="m in availableMonths" :value="m">{{ m }}</option>
-                                </select>
-                                <select v-model="filters.type" class="bg-transparent border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-sm outline-none focus:border-brand-500">
-                                    <option value="all">Tất cả loại</option>
-                                    <option value="income">Thu nhập</option>
-                                    <option value="expense">Chi tiêu</option>
-                                </select>
+                        <div class="pbi-card p-4 border-l-4 border-l-green-500">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Total Income</p>
+                            <h3 class="text-2xl font-bold text-gray-800 dark:text-white mt-1">{{ formatMoney(kpi.income) }}</h3>
+                        </div>
+                        <div class="pbi-card p-4 border-l-4 border-l-red-500">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Total Expense</p>
+                            <h3 class="text-2xl font-bold text-gray-800 dark:text-white mt-1">{{ formatMoney(kpi.expense) }}</h3>
+                        </div>
+                        <div class="pbi-card p-4 border-l-4 border-l-blue-500">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Net Savings</p>
+                            <h3 :class="['text-2xl font-bold mt-1', kpi.savings >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-500']">{{ formatMoney(kpi.savings) }}</h3>
+                        </div>
+                        <div class="pbi-card p-4 border-l-4 border-l-yellow-500">
+                            <div class="flex justify-between">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Budget Utilization</p>
+                                <span class="text-xs font-bold text-gray-400">{{ kpi.budgetUsed }}%</span>
                             </div>
-                            
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span v-if="filters.visualCategory" class="text-xs bg-brand-500/20 text-brand-600 dark:text-brand-300 px-2 py-1 rounded-full flex items-center gap-1 border border-brand-500/30">
-                                    Danh mục: {{ filters.visualCategory }} 
-                                    <button @click="filters.visualCategory = null"><i data-lucide="x" class="w-3 h-3"></i></button>
-                                </span>
-                                <span v-if="filters.dateRange" class="text-xs bg-brand-500/20 text-brand-600 dark:text-brand-300 px-2 py-1 rounded-full flex items-center gap-1 border border-brand-500/30">
-                                    Khoảng ngày: {{ formatDateShort(filters.dateRange[0]) }} - {{ formatDateShort(filters.dateRange[1]) }}
-                                    <button @click="filters.dateRange = null"><i data-lucide="x" class="w-3 h-3"></i></button>
-                                </span>
-                                <button v-if="filters.visualCategory || filters.dateRange" @click="resetVisualFilters" class="text-xs text-red-500 hover:underline ml-2">Xóa bộ lọc visual</button>
-                            </div>
-
-                            <div class="ml-auto flex gap-2">
-                                <button @click="downloadCSV" class="p-2 text-slate-500 hover:text-brand-500" title="Tải CSV"><i data-lucide="download" class="w-5 h-5"></i></button>
-                                <button @click="exportPDF" class="p-2 text-slate-500 hover:text-brand-500" title="Xuất PDF"><i data-lucide="file-text" class="w-5 h-5"></i></button>
+                            <div class="w-full bg-gray-200 dark:bg-zinc-700 h-2 mt-3">
+                                <div class="bg-yellow-500 h-2 transition-all duration-1000" :style="{width: Math.min(kpi.budgetUsed, 100) + '%'}"></div>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="glass p-4 rounded-xl border-l-4 border-green-500">
-                                <p class="text-xs text-slate-500 uppercase font-bold">Tổng Thu</p>
-                                <h3 class="text-xl md:text-2xl font-bold mt-1">{{ formatMoney(kpi.income) }}</h3>
+                        <div class="pbi-card md:col-span-3 h-80">
+                            <div class="px-4 py-3 border-b border-gray-100 dark:border-zinc-700 flex justify-between items-center bg-gray-50 dark:bg-zinc-800/50">
+                                <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200 uppercase">Cash Flow Analysis</h4>
+                                <i data-lucide="maximize-2" class="w-4 h-4 text-gray-400"></i>
                             </div>
-                            <div class="glass p-4 rounded-xl border-l-4 border-red-500">
-                                <p class="text-xs text-slate-500 uppercase font-bold">Tổng Chi</p>
-                                <h3 class="text-xl md:text-2xl font-bold mt-1">{{ formatMoney(kpi.expense) }}</h3>
-                            </div>
-                            <div class="glass p-4 rounded-xl border-l-4 border-brand-500">
-                                <p class="text-xs text-slate-500 uppercase font-bold">Tiết Kiệm Ròng</p>
-                                <h3 :class="['text-xl md:text-2xl font-bold mt-1', kpi.savings >= 0 ? 'text-brand-500' : 'text-red-500']">{{ formatMoney(kpi.savings) }}</h3>
-                            </div>
-                            <div class="glass p-4 rounded-xl border-l-4 border-purple-500">
-                                <p class="text-xs text-slate-500 uppercase font-bold">% Ngân Sách</p>
-                                <div class="flex justify-between items-end mt-1">
-                                    <h3 class="text-xl md:text-2xl font-bold">{{ kpi.budgetUsed }}%</h3>
-                                    <span class="text-xs text-slate-400">/ {{ formatMoney(settings.monthlyBudget) }}</span>
-                                </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 h-1 mt-2 rounded-full overflow-hidden">
-                                    <div class="bg-purple-500 h-full" :style="{width: Math.min(kpi.budgetUsed, 100) + '%'}"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                            
-                            <div class="xl:col-span-2 glass p-4 rounded-xl shadow-lg">
-                                <h4 class="font-bold mb-2 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4 text-brand-500"></i> Xu hướng Thu/Chi</h4>
+                            <div class="flex-1 p-2">
                                 <div id="chart-trend" class="chart-container"></div>
-                                <p class="text-center text-xs text-slate-400 mt-1 italic">💡 Kéo chuột trên biểu đồ để lọc theo khoảng ngày</p>
                             </div>
+                        </div>
 
-                            <div class="glass p-4 rounded-xl shadow-lg">
-                                <h4 class="font-bold mb-2 flex items-center gap-2"><i data-lucide="target" class="w-4 h-4 text-purple-500"></i> Thực tế vs Ngân sách (Tích lũy)</h4>
+                        <div class="pbi-card h-80">
+                            <div class="px-4 py-3 border-b border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50">
+                                <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200 uppercase">Expense Share</h4>
+                            </div>
+                            <div class="flex-1 p-2">
+                                <div id="chart-category" class="chart-container"></div>
+                            </div>
+                        </div>
+
+                        <div class="pbi-card md:col-span-2 h-72">
+                            <div class="px-4 py-3 border-b border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50">
+                                <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200 uppercase">Budget vs Actual (Cumulative)</h4>
+                            </div>
+                            <div class="flex-1 p-2">
                                 <div id="chart-budget" class="chart-container"></div>
                             </div>
+                        </div>
 
-                            <div class="glass p-4 rounded-xl shadow-lg">
-                                <h4 class="font-bold mb-2 flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-red-500"></i> Phân bổ Chi tiêu</h4>
-                                <div id="chart-category" class="chart-container"></div>
-                                <p class="text-center text-xs text-slate-400 mt-1 italic">💡 Bấm vào miếng bánh để lọc các biểu đồ khác</p>
+                        <div class="pbi-card md:col-span-2 h-72">
+                            <div class="px-4 py-3 border-b border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50">
+                                <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200 uppercase">Top Categories vs Budget</h4>
                             </div>
-
-                            <div class="glass p-4 rounded-xl shadow-lg">
-                                <h4 class="font-bold mb-2 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-4 h-4 text-orange-500"></i> Top Danh mục vs Định mức</h4>
+                            <div class="flex-1 p-2">
                                 <div id="chart-top-cat" class="chart-container"></div>
                             </div>
-
-                            <div class="glass p-4 rounded-xl shadow-lg">
-                                <h4 class="font-bold mb-2 flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-green-500"></i> Tiết kiệm Hàng ngày</h4>
+                        </div>
+                        
+                        <div class="pbi-card md:col-span-2 h-64">
+                             <div class="px-4 py-3 border-b border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50">
+                                <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200 uppercase">Daily Net Savings Trend</h4>
+                            </div>
+                            <div class="flex-1 p-2">
                                 <div id="chart-area-savings" class="chart-container"></div>
                             </div>
-
-                            <div class="glass p-4 rounded-xl shadow-lg">
-                                <h4 class="font-bold mb-2 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i> Cuối tuần vs Trong tuần</h4>
+                        </div>
+                        <div class="pbi-card md:col-span-2 h-64">
+                             <div class="px-4 py-3 border-b border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50">
+                                <h4 class="font-bold text-sm text-gray-700 dark:text-gray-200 uppercase">Weekday vs Weekend Spending</h4>
+                            </div>
+                            <div class="flex-1 p-2">
                                 <div id="chart-weekend" class="chart-container"></div>
                             </div>
                         </div>
+
                     </div>
 
-                    <div v-if="currentPage === 'add'" class="max-w-4xl mx-auto space-y-6 animate-fade-in">
-                        <div class="glass p-6 rounded-xl border border-brand-500/30 shadow-lg">
-                            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="plus-circle" class="text-brand-500"></i> Thêm Giao Dịch</h2>
-                            <form @submit.prevent="addTransaction" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="col-span-2">
-                                    <div class="relative">
-                                        <span class="absolute left-4 top-3.5 text-brand-500 font-bold text-lg">{{ settings.currency }}</span>
-                                        <input v-model.number="form.amount" type="number" placeholder="0" required class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl py-3 pl-10 pr-4 text-2xl font-bold outline-none focus:ring-2 focus:ring-brand-500">
+                    <div v-if="currentPage === 'add'" class="p-6 max-w-5xl mx-auto animate-fade-in">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="pbi-card p-6 md:col-span-1 h-fit">
+                                <h2 class="text-lg font-bold mb-6 pb-2 border-b dark:border-zinc-700">New Entry</h2>
+                                <form @submit.prevent="addTransaction" class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Type</label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button type="button" @click="form.type='expense'" :class="['py-2 text-sm font-bold rounded border transition', form.type==='expense' ? 'bg-red-50 text-red-600 border-red-500' : 'bg-gray-50 border-gray-200 dark:bg-zinc-800 dark:border-zinc-600']">Expense</button>
+                                            <button type="button" @click="form.type='income'" :class="['py-2 text-sm font-bold rounded border transition', form.type==='income' ? 'bg-green-50 text-green-600 border-green-500' : 'bg-gray-50 border-gray-200 dark:bg-zinc-800 dark:border-zinc-600']">Income</button>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button type="button" @click="form.type='expense'" :class="['flex-1 py-2 rounded-lg font-medium border transition', form.type==='expense' ? 'bg-red-500/10 text-red-500 border-red-500' : 'border-slate-300 dark:border-slate-700 text-slate-500']">Chi tiêu</button>
-                                    <button type="button" @click="form.type='income'" :class="['flex-1 py-2 rounded-lg font-medium border transition', form.type==='income' ? 'bg-green-500/10 text-green-500 border-green-500' : 'border-slate-300 dark:border-slate-700 text-slate-500']">Thu nhập</button>
-                                </div>
-                                <input v-model="form.date" type="date" required class="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 outline-none">
-                                <select v-model="form.category" class="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 outline-none">
-                                    <option v-for="c in availableCategories" :value="c">{{ c }}</option>
-                                </select>
-                                <input v-model="form.note" type="text" placeholder="Ghi chú (Tùy chọn)" class="col-span-1 md:col-span-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 outline-none">
+                                    
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Amount</label>
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-2.5 font-bold text-gray-400">{{ settings.currency }}</span>
+                                            <input v-model.number="form.amount" type="number" required class="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded p-2 pl-8 font-mono text-lg font-bold focus:ring-2 focus:ring-[#F2C811] outline-none">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Date & Category</label>
+                                        <input v-model="form.date" type="date" required class="w-full mb-2 bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded p-2 text-sm">
+                                        <select v-model="form.category" class="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded p-2 text-sm">
+                                            <option v-for="c in availableCategories" :value="c">{{ c }}</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Note</label>
+                                        <input v-model="form.note" type="text" class="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded p-2 text-sm">
+                                    </div>
+
+                                    <button type="submit" class="w-full bg-[#F2C811] hover:bg-[#d9b310] text-black font-bold py-3 rounded shadow-md transition-transform active:scale-95">
+                                        Add Transaction
+                                    </button>
+                                </form>
                                 
-                                <button type="submit" class="col-span-1 md:col-span-2 bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex justify-center gap-2">
-                                    <i data-lucide="check"></i> Lưu Giao Dịch
-                                </button>
-                            </form>
-                        </div>
+                                <div class="mt-6 pt-6 border-t dark:border-zinc-700 flex flex-col gap-2">
+                                    <button @click="generateDemoData" class="text-xs text-blue-500 hover:underline">+ Generate 10 Demo Rows</button>
+                                    <button @click="resetData" class="text-xs text-red-500 hover:underline">Clear All Data</button>
+                                </div>
+                            </div>
 
-                        <div class="flex gap-3 justify-center">
-                            <button @click="generateDemoData" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-lg text-sm hover:bg-slate-300 dark:hover:bg-slate-700 transition">
-                                + Thêm 10 Giao dịch Demo
-                            </button>
-                            <button @click="resetData" class="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-lg text-sm hover:bg-red-200 transition">
-                                Reset Dữ liệu
-                            </button>
-                        </div>
-
-                        <div class="glass rounded-xl overflow-hidden">
-                            <div class="p-4 border-b border-slate-200 dark:border-white/5 font-bold">Giao dịch gần đây</div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-slate-100 dark:bg-slate-800/50 text-slate-500">
-                                        <tr>
-                                            <th class="p-3">Ngày</th>
-                                            <th class="p-3">Danh mục</th>
-                                            <th class="p-3">Ghi chú</th>
-                                            <th class="p-3 text-right">Số tiền</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700/50">
-                                        <tr v-for="tx in recentTransactions" :key="tx.id" class="hover:bg-black/5 dark:hover:bg-white/5">
-                                            <td class="p-3 text-slate-500">{{ tx.date }}</td>
-                                            <td class="p-3 font-medium">{{ tx.category }}</td>
-                                            <td class="p-3 text-slate-400">{{ tx.note }}</td>
-                                            <td :class="['p-3 text-right font-bold', tx.type==='income'?'text-green-500':'text-red-500']">
-                                                {{ tx.type==='income'?'+':'-' }}{{ formatMoney(tx.amount) }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="pbi-card md:col-span-2 overflow-hidden">
+                                <div class="px-6 py-4 border-b border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800/50 flex justify-between items-center">
+                                    <h2 class="font-bold text-lg">Recent Transactions</h2>
+                                    <button @click="downloadCSV" class="text-xs bg-white dark:bg-zinc-700 border px-3 py-1 rounded shadow-sm hover:bg-gray-50">Download CSV</button>
+                                </div>
+                                <div class="overflow-y-auto max-h-[600px]">
+                                    <table class="w-full text-left text-sm">
+                                        <thead class="bg-gray-100 dark:bg-zinc-900 sticky top-0 border-b dark:border-zinc-700">
+                                            <tr>
+                                                <th class="p-4 font-semibold text-gray-600 dark:text-gray-400">Date</th>
+                                                <th class="p-4 font-semibold text-gray-600 dark:text-gray-400">Category</th>
+                                                <th class="p-4 font-semibold text-gray-600 dark:text-gray-400">Note</th>
+                                                <th class="p-4 font-semibold text-gray-600 dark:text-gray-400 text-right">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 dark:divide-zinc-700">
+                                            <tr v-for="tx in recentTransactions" :key="tx.id" class="hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                                                <td class="p-4 text-gray-500 dark:text-gray-400 font-mono text-xs">{{ tx.date }}</td>
+                                                <td class="p-4 font-medium">{{ tx.category }}</td>
+                                                <td class="p-4 text-gray-500 dark:text-gray-400 italic">{{ tx.note }}</td>
+                                                <td :class="['p-4 text-right font-bold font-mono', tx.type==='income'?'text-green-600':'text-red-500']">
+                                                    {{ tx.type==='income'?'+':'-' }}{{ formatMoney(tx.amount) }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div v-if="currentPage === 'settings'" class="max-w-2xl mx-auto space-y-6">
-                        <div class="glass p-6 rounded-xl">
-                            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="settings" class="text-brand-500"></i> Cài Đặt Chung</h2>
-                            <div class="space-y-4">
+                    <div v-if="currentPage === 'settings'" class="p-6 max-w-2xl mx-auto">
+                        <div class="pbi-card p-8">
+                            <h2 class="text-2xl font-bold mb-6 border-b pb-4 dark:border-zinc-700">Configuration</h2>
+                            
+                            <div class="grid gap-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-500 mb-1">Đơn vị tiền tệ</label>
-                                    <select v-model="settings.currency" @change="saveSettings" class="w-full p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 outline-none">
-                                        <option value="₫">Việt Nam Đồng (₫)</option>
-                                        <option value="$">USD ($)</option>
-                                        <option value="€">Euro (€)</option>
-                                    </select>
+                                    <label class="font-bold text-gray-700 dark:text-gray-300 block mb-2">Currency Symbol</label>
+                                    <div class="flex gap-2">
+                                        <button v-for="c in ['₫', '$', '€', '£', '¥']" @click="settings.currency = c; saveSettings()"
+                                            :class="['w-10 h-10 rounded font-bold border', settings.currency === c ? 'bg-[#F2C811] border-[#F2C811] text-black' : 'bg-white dark:bg-zinc-800 border-gray-300 dark:border-zinc-600']">
+                                            {{ c }}
+                                        </button>
+                                    </div>
                                 </div>
+
                                 <div>
-                                    <label class="block text-sm font-medium text-slate-500 mb-1">Ngân sách tháng</label>
-                                    <input v-model.number="settings.monthlyBudget" @change="saveSettings" type="number" class="w-full p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 outline-none">
+                                    <label class="font-bold text-gray-700 dark:text-gray-300 block mb-2">Monthly Budget Target</label>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xl font-bold text-gray-400">{{ settings.currency }}</span>
+                                        <input v-model.number="settings.monthlyBudget" @change="saveSettings" type="number" class="flex-1 bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded p-3 text-lg font-bold">
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-2">This value is used to calculate budget utilization charts.</p>
+                                </div>
+
+                                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded border border-blue-100 dark:border-blue-800">
+                                    <p class="text-sm text-blue-800 dark:text-blue-300 font-bold flex items-center gap-2">
+                                        <i data-lucide="cloud" class="w-4 h-4"></i> Cloud Sync Active
+                                    </p>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                        Your data is securely synchronized with Google Firebase.
+                                        Project ID: <span class="font-mono">{{ firebaseConfig.projectId }}</span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -276,13 +358,14 @@
 
                 </div>
 
-                <nav class="md:hidden glass fixed bottom-0 w-full h-16 flex justify-around items-center border-t border-white/5 pb-safe z-40 bg-white/90 dark:bg-dark-900/90 backdrop-blur-md">
+                <nav class="md:hidden bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800 flex justify-around items-center h-16 shrink-0 z-40">
                     <button v-for="page in pages" :key="page.id" @click="currentPage = page.id" 
-                        :class="['flex flex-col items-center gap-1 p-2 rounded-lg transition', currentPage === page.id ? 'text-brand-500' : 'text-slate-400']">
+                        :class="['flex flex-col items-center gap-1 p-2 rounded transition', currentPage === page.id ? 'text-[#F2C811]' : 'text-gray-400']">
                         <i :data-lucide="page.icon" class="w-6 h-6"></i>
-                        <span class="text-[10px] font-medium">{{ page.label }}</span>
+                        <span class="text-[10px] font-bold uppercase">{{ page.label }}</span>
                     </button>
                 </nav>
+
             </main>
         </div>
     </div>
@@ -290,7 +373,9 @@
     <script>
         const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
-        // --- FIREBASE CONFIG (CỦA BẠN) ---
+        // ==========================================
+        // ⚠️ ĐIỀN API KEY CỦA BẠN VÀO ĐÂY ⚠️
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyDmV3I9ZQ-N866cZ5mzMhVLNHcKjfL8cQ0",
             authDomain: "financial-tracking-app-bb3cb.firebaseapp.com",
@@ -301,61 +386,47 @@
             appId: "1:242060161334:web:e9a4e0c7f8758cd9770397",
             measurementId: "G-NV4B6CWRBS"
         };
+        
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
 
         createApp({
             setup() {
-                // --- STATE ---
+                // State
                 const user = ref(null);
                 const currentPage = ref('dashboard');
-                const isDark = ref(localStorage.getItem('wp_theme') !== 'light'); // Default Dark
+                const isDark = ref(true); // Power BI Dark Mode default
                 const rawTransactions = ref([]);
                 const settings = ref({ currency: '₫', monthlyBudget: 10000000 });
+                const filters = ref({ month: 'all', type: 'all', visualCategory: null, dateRange: null });
                 
-                // Filters State
-                const filters = ref({
-                    month: 'all',
-                    type: 'all',
-                    visualCategory: null, // From Donut/Bar click
-                    dateRange: null // From Line Chart selection
-                });
-
-                const form = ref({ amount: '', type: 'expense', category: 'Ăn uống', date: new Date().toISOString().split('T')[0], note: '' });
-
+                const form = ref({ amount: '', type: 'expense', category: 'Food', date: new Date().toISOString().split('T')[0], note: '' });
                 const pages = [
                     { id: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
-                    { id: 'add', label: 'Giao dịch', icon: 'plus-circle' },
-                    { id: 'settings', label: 'Cài đặt', icon: 'settings' }
+                    { id: 'add', label: 'Add Transaction', icon: 'plus-square' },
+                    { id: 'settings', label: 'Settings', icon: 'settings' }
                 ];
-
                 const categories = {
-                    expense: ['Ăn uống', 'Di chuyển', 'Nhà cửa', 'Mua sắm', 'Giải trí', 'Sức khỏe', 'Hóa đơn'],
-                    income: ['Lương', 'Thưởng', 'Đầu tư', 'Bán hàng', 'Khác']
+                    expense: ['Food', 'Transport', 'Rent', 'Shopping', 'Entertainment', 'Health', 'Bills'],
+                    income: ['Salary', 'Bonus', 'Investment', 'Freelance', 'Other']
                 };
 
-                // --- COMPUTED DATA (THE CORE ENGINE) ---
+                // Computed Engine
                 const availableMonths = computed(() => [...new Set(rawTransactions.value.map(t => t.date.substring(0, 7)))].sort().reverse());
                 const availableCategories = computed(() => categories[form.value.type]);
 
-                // Filter Logic: Applies Global + Visual Filters
                 const processedData = computed(() => {
                     return rawTransactions.value.filter(t => {
-                        // 1. Global Dropdowns
                         if (filters.value.month !== 'all' && !t.date.startsWith(filters.value.month)) return false;
                         if (filters.value.type !== 'all' && t.type !== filters.value.type) return false;
-                        
-                        // 2. Visual Cross-filters
                         if (filters.value.visualCategory && t.category !== filters.value.visualCategory) return false;
-                        if (filters.value.dateRange) {
-                            if (t.date < filters.value.dateRange[0] || t.date > filters.value.dateRange[1]) return false;
-                        }
+                        if (filters.value.dateRange && (t.date < filters.value.dateRange[0] || t.date > filters.value.dateRange[1])) return false;
                         return true;
                     }).sort((a, b) => new Date(a.date) - new Date(b.date));
                 });
 
-                // KPI Calculations
                 const kpi = computed(() => {
                     const data = processedData.value;
                     const inc = data.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
@@ -364,213 +435,159 @@
                     return { income: inc, expense: exp, savings: inc - exp, budgetUsed: used.toFixed(1) };
                 });
 
-                const recentTransactions = computed(() => [...processedData.value].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10));
+                const recentTransactions = computed(() => [...processedData.value].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 50));
 
-                // --- ACTIONS ---
+                // Actions
                 const login = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
                 const logout = () => auth.signOut();
                 
                 const toggleTheme = () => {
                     isDark.value = !isDark.value;
-                    localStorage.setItem('wp_theme', isDark.value ? 'dark' : 'light');
-                    document.documentElement.className = isDark.value ? 'dark' : 'light';
-                    renderCharts(); // Redraw charts for theme colors
+                    document.documentElement.className = isDark.value ? 'dark' : '';
+                    renderCharts();
                 };
 
-                const formatMoney = (n) => new Intl.NumberFormat('vi-VN').format(n) + settings.value.currency;
-                const formatDateShort = (d) => new Date(d).toLocaleDateString('vi-VN', {day:'numeric', month:'numeric'});
-
-                const resetVisualFilters = () => {
-                    filters.value.visualCategory = null;
-                    filters.value.dateRange = null;
-                };
-
-                const saveSettings = () => {
-                    if(user.value) db.ref(`users/${user.value.uid}/settings`).set(settings.value);
-                };
-
+                const saveSettings = () => { if(user.value) db.ref(`users/${user.value.uid}/settings`).set(settings.value); };
+                
                 const addTransaction = () => {
                     if (!user.value) return;
                     db.ref(`users/${user.value.uid}/transactions`).push({ ...form.value, id: Date.now() });
-                    form.value.amount = ''; form.value.note = '';
-                    alert('Đã lưu!');
+                    alert('Saved to Cloud!');
                 };
 
-                const resetData = () => {
-                    if(confirm("Xóa toàn bộ dữ liệu?")) db.ref(`users/${user.value.uid}/transactions`).remove();
-                };
-
+                const resetData = () => { if(confirm("Clear all data?")) db.ref(`users/${user.value.uid}/transactions`).remove(); };
+                
                 const generateDemoData = () => {
                     if (!user.value) return;
-                    const demoTxs = [];
                     for(let i=0; i<10; i++) {
                         const isInc = Math.random() > 0.7;
                         const d = new Date(); d.setDate(d.getDate() - Math.floor(Math.random()*60));
-                        demoTxs.push({
+                        db.ref(`users/${user.value.uid}/transactions`).push({
                             id: Date.now() + i,
                             date: d.toISOString().split('T')[0],
                             type: isInc ? 'income' : 'expense',
-                            category: isInc ? categories.income[Math.floor(Math.random()*categories.income.length)] : categories.expense[Math.floor(Math.random()*categories.expense.length)],
-                            amount: Math.floor(Math.random() * 1000000) + 50000,
-                            note: 'Demo Transaction'
+                            category: isInc ? categories.income[0] : categories.expense[Math.floor(Math.random()*categories.expense.length)],
+                            amount: Math.floor(Math.random() * 1000) + 50,
+                            note: 'Demo Data'
                         });
                     }
-                    // Batch update requires building an object
-                    demoTxs.forEach(tx => db.ref(`users/${user.value.uid}/transactions`).push(tx));
                 };
+
+                const resetVisualFilters = () => { filters.value.visualCategory = null; filters.value.dateRange = null; };
+                const formatMoney = (n) => new Intl.NumberFormat('en-US').format(n) + settings.value.currency;
 
                 const downloadCSV = () => {
                     const header = "Date,Type,Category,Amount,Note\n";
-                    const rows = processedData.value.map(t => `${t.date},${t.type},${t.category},${t.amount},${t.note || ''}`).join("\n");
+                    const rows = processedData.value.map(t => `${t.date},${t.type},${t.category},${t.amount},${t.note}`).join("\n");
                     const blob = new Blob([header + rows], { type: 'text/csv' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a'); a.href = url; a.download = 'wealthpulse_data.csv'; a.click();
+                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'data.csv'; a.click();
                 };
 
                 const exportPDF = () => {
-                    const el = document.getElementById('main-view');
-                    html2canvas(el, { scale: 2, backgroundColor: isDark.value ? '#0f172a' : '#f3f4f6' }).then(canvas => {
+                    const el = document.getElementById('report-canvas');
+                    html2canvas(el, { scale: 1.5, backgroundColor: isDark.value ? '#18181B' : '#EAEAEA' }).then(canvas => {
                         const img = canvas.toDataURL('image/png');
-                        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                        const pdf = new jspdf.jsPDF('l', 'mm', 'a4'); // Landscape
                         const w = pdf.internal.pageSize.getWidth();
                         const h = (canvas.height * w) / canvas.width;
                         pdf.addImage(img, 'PNG', 0, 0, w, h);
-                        pdf.save('dashboard-report.pdf');
+                        pdf.save('PowerBI_Report.pdf');
                     });
                 };
 
-                // --- CHART ENGINE (PLOTLY) ---
+                // Charting Engine
                 const renderCharts = () => {
-                    if (currentPage.value !== 'dashboard' || !rawTransactions.value.length) return;
+                    if (currentPage.value !== 'dashboard') return;
                     nextTick(() => {
                         const data = processedData.value;
-                        const textColor = isDark.value ? '#94a3b8' : '#475569';
-                        const gridColor = isDark.value ? '#334155' : '#e2e8f0';
-                        const layoutBase = {
+                        const textColor = isDark.value ? '#E5E7EB' : '#374151';
+                        const gridColor = isDark.value ? '#3F3F46' : '#E5E7EB';
+                        const baseLayout = {
                             paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-                            font: { color: textColor },
-                            margin: { t: 10, b: 30, l: 30, r: 10 },
+                            font: { color: textColor, family: 'Segoe UI' },
+                            margin: { t: 20, b: 30, l: 40, r: 20 },
                             xaxis: { showgrid: false, gridcolor: gridColor },
                             yaxis: { showgrid: true, gridcolor: gridColor },
                             showlegend: false
                         };
 
-                        // 1. Line Trend (Income vs Expense)
-                        // Group by date
+                        // 1. TREND LINE
                         const dates = [...new Set(data.map(t => t.date))].sort();
                         const incTrend = dates.map(d => data.filter(t => t.date === d && t.type === 'income').reduce((s,t) => s+t.amount, 0));
                         const expTrend = dates.map(d => data.filter(t => t.date === d && t.type === 'expense').reduce((s,t) => s+t.amount, 0));
                         
                         Plotly.newPlot('chart-trend', [
-                            { x: dates, y: incTrend, type: 'scatter', mode: 'lines', name: 'Thu', line: {color: '#10B981', width: 3} },
-                            { x: dates, y: expTrend, type: 'scatter', mode: 'lines', name: 'Chi', line: {color: '#EF4444', width: 3} }
-                        ], { ...layoutBase, dragmode: 'select', showlegend: true }, {displayModeBar: false});
+                            { x: dates, y: incTrend, type: 'scatter', mode: 'lines', line: {color: '#10B981', width: 2, shape: 'spline'} },
+                            { x: dates, y: expTrend, type: 'scatter', mode: 'lines', line: {color: '#EF4444', width: 2, shape: 'spline'} }
+                        ], { ...baseLayout, dragmode: 'select' }, {displayModeBar: false});
 
-                        // Event: Selection for Date Range Filter
-                        document.getElementById('chart-trend').on('plotly_selected', (eventData) => {
-                            if (eventData) {
-                                const range = eventData.range.x;
-                                filters.value.dateRange = [range[0].substring(0,10), range[1].substring(0,10)];
-                            } else {
-                                filters.value.dateRange = null; // Double click to reset
-                            }
+                        document.getElementById('chart-trend').on('plotly_selected', (e) => {
+                            if(e) filters.value.dateRange = [e.range.x[0].substring(0,10), e.range.x[1].substring(0,10)];
+                            else filters.value.dateRange = null;
                         });
 
-                        // 2. Budget vs Actual (Cumulative)
-                        // Simple linear budget accumulation for demo
-                        let cumExp = 0;
-                        const expCumLine = dates.map(d => {
-                            cumExp += data.filter(t => t.date === d && t.type === 'expense').reduce((s,t) => s+t.amount, 0);
-                            return cumExp;
-                        });
-                        const budgetLine = dates.map((_, i) => (settings.value.monthlyBudget / 30) * (i+1)); // Approx
-
-                        Plotly.newPlot('chart-budget', [
-                            { x: dates, y: expCumLine, type: 'scatter', fill: 'tozeroy', name: 'Thực tế', line: {color: '#A855F7'} },
-                            { x: dates, y: budgetLine, type: 'scatter', mode: 'lines', name: 'Ngân sách', line: {color: '#64748B', dash: 'dot'} }
-                        ], layoutBase, {displayModeBar: false});
-
-                        // 3. Donut Expense by Category
+                        // 2. DONUT
                         const expData = data.filter(t => t.type === 'expense');
-                        const catMap = {};
-                        expData.forEach(t => catMap[t.category] = (catMap[t.category] || 0) + t.amount);
+                        const catMap = {}; expData.forEach(t => catMap[t.category] = (catMap[t.category]||0) + t.amount);
                         
                         Plotly.newPlot('chart-category', [{
-                            labels: Object.keys(catMap), values: Object.values(catMap),
-                            type: 'pie', hole: 0.5,
+                            labels: Object.keys(catMap), values: Object.values(catMap), type: 'pie', hole: 0.6,
                             marker: { colors: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6'] }
-                        }], layoutBase, {displayModeBar: false});
+                        }], { ...baseLayout, margin: {t:0,b:0,l:0,r:0} }, {displayModeBar: false});
 
-                        // Event: Click to filter category
-                        document.getElementById('chart-category').on('plotly_click', (data) => {
-                            filters.value.visualCategory = data.points[0].label;
-                        });
+                        document.getElementById('chart-category').on('plotly_click', (d) => filters.value.visualCategory = d.points[0].label);
 
-                        // 4. Bar Top Categories vs Budget (Budget is fake per cat for demo)
-                        const sortedCats = Object.entries(catMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-                        Plotly.newPlot('chart-top-cat', [
-                            { x: sortedCats.map(c=>c[0]), y: sortedCats.map(c=>c[1]), type: 'bar', marker: {color: '#F97316'} }
-                        ], layoutBase, {displayModeBar: false});
+                        // 3. BUDGET vs ACTUAL (Cumulative)
+                        let cum = 0;
+                        const actualLine = dates.map(d => { cum += data.filter(t => t.date === d && t.type === 'expense').reduce((s,t)=>s+t.amount,0); return cum; });
+                        const budgetLine = dates.map((_, i) => (settings.value.monthlyBudget / 30) * (i+1));
+                        
+                        Plotly.newPlot('chart-budget', [
+                            { x: dates, y: actualLine, type: 'scatter', fill: 'tozeroy', line: {color: '#8B5CF6'} },
+                            { x: dates, y: budgetLine, type: 'scatter', mode: 'lines', line: {color: '#6B7280', dash: 'dot'} }
+                        ], baseLayout, {displayModeBar: false});
 
-                         document.getElementById('chart-top-cat').on('plotly_click', (data) => {
-                            filters.value.visualCategory = data.points[0].x;
-                        });
+                        // 4. TOP CAT BAR
+                        const sortedCats = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+                        Plotly.newPlot('chart-top-cat', [{
+                            x: sortedCats.map(c=>c[0]), y: sortedCats.map(c=>c[1]), type: 'bar', marker: {color: '#F97316'}
+                        }], baseLayout, {displayModeBar: false});
+                        
+                        document.getElementById('chart-top-cat').on('plotly_click', (d) => filters.value.visualCategory = d.points[0].x);
 
-                        // 5. Daily Net Savings (Area)
+                        // 5. AREA SAVINGS
                         const savTrend = dates.map((d, i) => incTrend[i] - expTrend[i]);
-                        Plotly.newPlot('chart-area-savings', [
-                            { x: dates, y: savTrend, type: 'scatter', fill: 'tozeroy', line: {color: '#3B82F6'} }
-                        ], layoutBase, {displayModeBar: false});
+                         Plotly.newPlot('chart-area-savings', [{
+                            x: dates, y: savTrend, type: 'scatter', fill: 'tozeroy', line: {color: '#3B82F6'}
+                        }], baseLayout, {displayModeBar: false});
 
-                        // 6. Weekend vs Weekday
-                        let weekAmt = 0, endAmt = 0;
-                        expData.forEach(t => {
-                            const day = new Date(t.date).getDay();
-                            (day === 0 || day === 6) ? endAmt += t.amount : weekAmt += t.amount;
-                        });
+                        // 6. WEEKEND
+                        let wAmt = 0, eAmt = 0;
+                        expData.forEach(t => { const d = new Date(t.date).getDay(); (d===0||d===6)?eAmt+=t.amount:wAmt+=t.amount; });
                         Plotly.newPlot('chart-weekend', [{
-                            labels: ['Trong tuần', 'Cuối tuần'], values: [weekAmt, endAmt], type: 'pie', hole: 0.5,
-                            marker: { colors: ['#3B82F6', '#14B8A6'] }
-                        }], layoutBase, {displayModeBar: false});
+                            labels: ['Weekday', 'Weekend'], values: [wAmt, eAmt], type: 'pie', hole: 0.6,
+                            marker: { colors: ['#0ea5e9', '#06b6d4'] }
+                        }], { ...baseLayout, margin: {t:0,b:0,l:0,r:0} }, {displayModeBar: false});
                     });
                 };
 
-                // --- LIFECYCLE ---
                 onMounted(() => {
-                    // Initialize Theme
                     if(isDark.value) document.documentElement.classList.add('dark');
-                    
                     auth.onAuthStateChanged(u => {
                         user.value = u;
-                        if (u) {
-                            // Listen to Transactions
-                            db.ref(`users/${u.uid}/transactions`).on('value', snap => {
-                                const val = snap.val();
-                                rawTransactions.value = val ? Object.values(val) : [];
-                            });
-                            // Listen to Settings
-                            db.ref(`users/${u.uid}/settings`).on('value', snap => {
-                                if(snap.val()) settings.value = snap.val();
-                            });
-                        } else {
-                            rawTransactions.value = [];
+                        if(u) {
+                            db.ref(`users/${u.uid}/transactions`).on('value', s => rawTransactions.value = s.val() ? Object.values(s.val()) : []);
+                            db.ref(`users/${u.uid}/settings`).on('value', s => { if(s.val()) settings.value = s.val(); });
                         }
                     });
                 });
 
-                // Watch for changes to redraw charts
-                watch([processedData, currentPage, isDark], () => {
-                    renderCharts();
-                    setTimeout(() => lucide.createIcons(), 100);
-                });
+                watch([processedData, currentPage, isDark], () => { renderCharts(); setTimeout(() => lucide.createIcons(), 100); });
 
                 return {
-                    user, currentPage, isDark, filters, form, settings, kpi,
-                    availableMonths, availableCategories, recentTransactions,
-                    login, logout, toggleTheme, saveSettings,
-                    addTransaction, resetData, generateDemoData,
-                    downloadCSV, exportPDF, resetVisualFilters,
-                    formatMoney, formatDateShort
+                    user, currentPage, isDark, filters, form, settings, kpi, recentTransactions, availableMonths, availableCategories, firebaseConfig,
+                    login, logout, toggleTheme, addTransaction, resetData, generateDemoData, saveSettings, resetVisualFilters,
+                    downloadCSV, exportPDF, formatMoney
                 };
             }
         }).mount('#app');
