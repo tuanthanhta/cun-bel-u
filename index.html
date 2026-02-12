@@ -231,7 +231,7 @@
     </div>
 
     <aside id="sidebar">
-        <div class="brand"><i class="fas fa-cube"></i> Cun Bel Mem</div>
+        <div class="brand"><i class="fas fa-cube"></i> Cun Bel</div>
         
         <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 12px;">
             <img id="u-avatar" style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--neon-blue);" src="">
@@ -259,7 +259,8 @@
                     <div class="range-opt" onclick="app.setDateFilter('7D')">7D</div>
                     <div class="range-opt" onclick="app.setDateFilter('1M')">1M</div>
                     <div class="range-opt" onclick="app.setDateFilter('3M')">3M</div>
-                    <div class="range-opt active" onclick="app.setDateFilter('YTD')">YTD</div>
+                    <div class="range-opt" onclick="app.setDateFilter('6M')">6M</div>
+                    <div class="range-opt active" onclick="app.setDateFilter('ALL')">All Time</div>
                 </div>
                 
                 <select id="f-type" onchange="app.render()">
@@ -339,6 +340,7 @@
                     <div class="chart-title"><i class="fas fa-calendar-alt"></i> Monthly Overview</div>
                     <div id="chart-monthly" class="chart-container"></div>
                 </div>
+                
                 <div class="glass-panel" style="padding: 24px;">
                     <div class="chart-title"><i class="fas fa-coins"></i> Cumulative Spend</div>
                     <div id="chart-cum" class="chart-container"></div>
@@ -445,7 +447,7 @@
             user: null,
             data: [],
             settings: { curr: '$', budget: 5000 },
-            filters: { type: 'all', dateRange: 'YTD', cat: null },
+            filters: { type: 'all', dateRange: 'ALL', cat: null },
             
             init: () => {
                 // Auth Listeners
@@ -553,8 +555,11 @@
                 app.render();
             },
             reset: () => {
-                app.filters = { type: 'all', dateRange: 'YTD', cat: null };
+                app.filters = { type: 'all', dateRange: 'ALL', cat: null };
                 document.getElementById('f-type').value = 'all';
+                // Reset UI for date filter
+                document.querySelectorAll('.range-opt').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.range-opt')[4].classList.add('active'); // ALL is last index
                 app.render();
             },
 
@@ -571,7 +576,10 @@
                 } else if(app.filters.dateRange === '3M') {
                     const cut = new Date(); cut.setMonth(now.getMonth()-3);
                     d = d.filter(x => new Date(x.date) >= cut);
-                } else if(app.filters.dateRange === 'YTD') {
+                } else if(app.filters.dateRange === '6M') {
+                    const cut = new Date(); cut.setMonth(now.getMonth()-6);
+                    d = d.filter(x => new Date(x.date) >= cut);
+                } else if(app.filters.dateRange === 'YTD') { // Keeping YTD logic if needed, but mapped to ALL in button
                     const cut = new Date(now.getFullYear(), 0, 1);
                     d = d.filter(x => new Date(x.date) >= cut);
                 }
@@ -702,4 +710,3 @@
     </script>
 </body>
 </html>
-
