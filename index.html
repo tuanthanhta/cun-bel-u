@@ -22,16 +22,15 @@
             theme: {
                 extend: {
                     colors: {
-                        // Bảng màu lấy cảm hứng từ Dashboard tài chính cao cấp
                         app: {
-                            bg: '#F3F4F6',          // Nền sáng
-                            darkBg: '#0F172A',      // Nền tối (Slate 900)
-                            card: '#FFFFFF',        // Card sáng
-                            darkCard: '#1E293B',    // Card tối (Slate 800)
-                            primary: '#3B82F6',     // Xanh chủ đạo (Blue 500)
-                            accent: '#F59E0B',      // Vàng điểm nhấn (Amber 500)
-                            success: '#10B981',     // Xanh lá (Emerald 500)
-                            danger: '#EF4444'       // Đỏ (Red 500)
+                            bg: '#F3F4F6',          
+                            darkBg: '#0F172A',      
+                            card: '#FFFFFF',        
+                            darkCard: '#1E293B',    
+                            primary: '#3B82F6',     
+                            accent: '#F59E0B',      
+                            success: '#10B981',     
+                            danger: '#EF4444'       
                         }
                     },
                     fontFamily: {
@@ -47,10 +46,8 @@
     </script>
 
     <style>
-        /* Hiệu ứng mượt mà cho toàn trang */
         body { transition: background-color 0.4s ease, color 0.4s ease; }
         
-        /* Card phong cách Power BI hiện đại */
         .dashboard-card {
             border-radius: 16px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -67,28 +64,31 @@
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        /* Tùy chỉnh thanh cuộn (Scrollbar) */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
         
-        /* Chart Containers */
         .chart-wrapper { width: 100%; height: 100%; min-height: 320px; position: relative; }
         
-        /* Animation Classes */
         .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
         
         .slide-up-enter-active { transition: all 0.4s ease-out; }
         .slide-up-enter-from { opacity: 0; transform: translateY(20px); }
         
-        /* Tiện ích ẩn code Vue khi chưa load */
         [v-cloak] { display: none; }
     </style>
 </head>
 
 <body class="bg-app-bg text-slate-800 dark:bg-app-darkBg dark:text-slate-200 h-screen overflow-hidden font-sans selection:bg-app-primary selection:text-white">
+
+    <div id="crash-screen" style="display:none; padding: 20px; color: red; text-align: center; background: #fff; height: 100vh;">
+        <h2 style="font-size: 24px; font-weight: bold;">⚠️ Ứng dụng không chạy được!</h2>
+        <p>Có thể do AdBlock đã chặn Firebase hoặc file bị lỗi khi copy.</p>
+        <p>Vui lòng tắt AdBlock và tải lại trang (F5).</p>
+        <pre id="error-log" style="background: #eee; padding: 10px; margin-top: 10px; text-align: left;"></pre>
+    </div>
 
     <div id="app" v-cloak class="h-full flex flex-col">
 
@@ -171,7 +171,7 @@
 
                             <div class="w-px h-6 bg-slate-300 dark:bg-slate-700"></div>
 
-                            <div class="relative group">
+                             <div class="relative group">
                                 <select v-model="filters.type" class="appearance-none bg-transparent font-semibold text-sm pl-2 pr-8 py-1 focus:outline-none cursor-pointer text-slate-600 dark:text-slate-300 hover:text-app-primary transition">
                                     <option value="all">Tất cả loại GD</option>
                                     <option value="income">Chỉ Thu nhập</option>
@@ -276,7 +276,7 @@
                                 <h4 class="font-bold text-slate-700 dark:text-slate-200 uppercase text-sm flex items-center gap-2">
                                     <i data-lucide="activity" class="w-4 h-4 text-app-primary"></i> Xu hướng Dòng tiền
                                 </h4>
-                                <span class="text-[10px] font-bold text-app-primary bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">Hỗ trợ: Kéo chọn vùng</span>
+                                <span class="text-[10px] font-bold text-app-primary bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">Kéo chuột để chọn vùng</span>
                             </div>
                             <div class="p-2 h-[350px]">
                                 <div id="chart-trend" class="chart-wrapper"></div>
@@ -340,7 +340,6 @@
                     </div>
 
                     <div v-if="currentPage === 'add'" class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 animate-slide-up">
-                        
                         <div class="dashboard-card p-6 md:col-span-1 bg-white dark:bg-app-darkCard h-fit shadow-lg">
                             <h2 class="text-xl font-bold mb-6 text-slate-800 dark:text-white flex items-center gap-2 pb-4 border-b border-slate-100 dark:border-slate-700">
                                 <i data-lucide="plus-circle" class="text-app-primary"></i> Giao Dịch Mới
@@ -356,7 +355,7 @@
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Số tiền</label>
                                     <div class="relative group">
                                         <span class="absolute left-4 top-3.5 text-lg font-bold text-slate-400 group-focus-within:text-app-primary transition-colors">{{ settings.currency }}</span>
-                                        <input v-model.number="form.amount" type="number" placeholder="0" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 pl-10 pr-4 text-xl font-bold outline-none focus:ring-2 focus:ring-app-primary focus:border-transparent transition-all">
+                                        <input v-model.number="form.amount" type="number" placeholder="0" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl py-3.5 pl-10 pr-4 text-xl font-bold outline-none focus:ring-2 focus:ring-app-primary transition-all">
                                     </div>
                                 </div>
 
@@ -450,20 +449,6 @@
                                         <div class="w-12 h-12 flex items-center justify-center font-bold text-slate-400 bg-white dark:bg-slate-800 rounded-xl shadow-sm">{{ settings.currency }}</div>
                                         <input v-model.number="settings.monthlyBudget" @change="saveSettings" type="number" class="flex-1 bg-transparent text-2xl font-bold outline-none px-4 text-slate-700 dark:text-white">
                                     </div>
-                                    <p class="text-xs text-slate-400 mt-2 ml-1">Ngân sách này dùng để tính % cảnh báo chi tiêu.</p>
-                                </div>
-
-                                <div class="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-2xl border border-blue-100 dark:border-blue-800/30 flex items-start gap-4">
-                                    <div class="p-3 bg-blue-100 dark:bg-blue-800 rounded-xl">
-                                        <i data-lucide="cloud-lightning" class="w-6 h-6 text-app-primary dark:text-blue-300"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-app-primary dark:text-blue-300 text-lg">Đồng bộ đám mây đang bật</h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
-                                            Dữ liệu của bạn được mã hóa và lưu trữ an toàn trên hạ tầng của Google.
-                                            <br>Project ID: <code class="bg-white dark:bg-slate-900 px-2 py-0.5 rounded font-mono text-xs border border-blue-200 dark:border-blue-800">{{ firebaseConfig.projectId }}</code>
-                                        </p>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -487,7 +472,7 @@
     <script>
         const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
-        // ⚠️ THAY API KEY CỦA BẠN VÀO ĐÂY ⚠️
+        // --- CẤU HÌNH FIREBASE (ĐÃ FIX SẴN) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDmV3I9ZQ-N866cZ5mzMhVLNHcKjfL8cQ0",
             authDomain: "financial-tracking-app-bb3cb.firebaseapp.com",
@@ -499,33 +484,26 @@
             measurementId: "G-NV4B6CWRBS"
         };
         
-        // Khởi tạo Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
+        // Khởi tạo an toàn (try-catch)
+        try {
+            firebase.initializeApp(firebaseConfig);
+            var auth = firebase.auth();
+            var db = firebase.database();
+        } catch (e) {
+            document.getElementById('crash-screen').style.display = 'block';
+            document.getElementById('error-log').innerText = e.message;
+        }
 
         createApp({
             setup() {
-                // --- 1. STATE MANAGEMENT ---
                 const user = ref(null);
                 const currentPage = ref('dashboard');
-                const isDark = ref(true); // Default Dark Mode for aesthetics
+                const isDark = ref(true);
                 const rawTransactions = ref([]);
                 const settings = ref({ currency: '₫', monthlyBudget: 10000000 });
-                
-                // Filters State
-                const filters = ref({
-                    month: 'all',
-                    type: 'all',
-                    categoryDropdown: 'all',
-                    visualCategory: null, // From Chart Click
-                    dateRange: null // From Chart Selection
-                });
-
-                // Form State
+                const filters = ref({ month: 'all', type: 'all', categoryDropdown: 'all', visualCategory: null, dateRange: null });
                 const form = ref({ amount: '', type: 'expense', category: 'Ăn uống', date: new Date().toISOString().split('T')[0], note: '' });
 
-                // Constant Data
                 const pages = [
                     { id: 'dashboard', label: 'Báo Cáo', icon: 'layout-dashboard' },
                     { id: 'add', label: 'Nhập Liệu', icon: 'plus-square' },
@@ -536,28 +514,21 @@
                     income: ['Lương', 'Thưởng', 'Đầu tư', 'Bán hàng', 'Quà tặng', 'Khác']
                 };
 
-                // --- 2. COMPUTED PROPERTIES (THE BRAIN) ---
                 const allCategories = computed(() => [...categories.expense, ...categories.income]);
                 const availableCategories = computed(() => categories[form.value.type]);
                 const availableMonths = computed(() => [...new Set(rawTransactions.value.map(t => t.date.substring(0, 7)))].sort().reverse());
 
-                // Filter Logic (Chaining filters)
                 const processedData = computed(() => {
                     return rawTransactions.value.filter(t => {
-                        // 1. Dropdowns
                         if (filters.value.month !== 'all' && !t.date.startsWith(filters.value.month)) return false;
                         if (filters.value.type !== 'all' && t.type !== filters.value.type) return false;
                         if (filters.value.categoryDropdown !== 'all' && t.category !== filters.value.categoryDropdown) return false;
-                        
-                        // 2. Interactive Cross-filters
                         if (filters.value.visualCategory && t.category !== filters.value.visualCategory) return false;
                         if (filters.value.dateRange && (t.date < filters.value.dateRange[0] || t.date > filters.value.dateRange[1])) return false;
-                        
                         return true;
                     }).sort((a, b) => new Date(a.date) - new Date(b.date));
                 });
 
-                // KPI Logic
                 const kpi = computed(() => {
                     const data = processedData.value;
                     const inc = data.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
@@ -568,14 +539,13 @@
 
                 const recentTransactions = computed(() => [...processedData.value].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 50));
 
-                // --- 3. METHODS ---
                 const login = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
                 const logout = () => auth.signOut();
                 
                 const toggleTheme = () => {
                     isDark.value = !isDark.value;
                     document.documentElement.className = isDark.value ? 'dark' : '';
-                    renderCharts(); // Redraw charts with new colors
+                    renderCharts();
                 };
 
                 const saveSettings = () => { if(user.value) db.ref(`users/${user.value.uid}/settings`).set(settings.value); };
@@ -584,25 +554,23 @@
                     if (!user.value) return;
                     db.ref(`users/${user.value.uid}/transactions`).push({ ...form.value, id: Date.now() });
                     form.value.amount = ''; form.value.note = '';
-                    alert('Đã lưu thành công!');
+                    alert('Đã lưu!');
                 };
 
-                const resetData = () => { if(confirm("CẢNH BÁO: Hành động này không thể hoàn tác. Xóa hết?")) db.ref(`users/${user.value.uid}/transactions`).remove(); };
+                const resetData = () => { if(confirm("Xóa hết dữ liệu?")) db.ref(`users/${user.value.uid}/transactions`).remove(); };
                 
                 const generateDemoData = () => {
                     if (!user.value) return;
                     for(let i=0; i<10; i++) {
-                        const isInc = Math.random() > 0.7; // 30% chance income
+                        const isInc = Math.random() > 0.7;
                         const d = new Date(); d.setDate(d.getDate() - Math.floor(Math.random()*60));
-                        const type = isInc ? 'income' : 'expense';
-                        const cats = categories[type];
                         db.ref(`users/${user.value.uid}/transactions`).push({
                             id: Date.now() + i,
                             date: d.toISOString().split('T')[0],
-                            type: type,
-                            category: cats[Math.floor(Math.random()*cats.length)],
+                            type: isInc ? 'income' : 'expense',
+                            category: isInc ? categories.income[0] : categories.expense[Math.floor(Math.random()*categories.expense.length)],
                             amount: Math.floor(Math.random() * 2000000) + 50000,
-                            note: 'Demo Data'
+                            note: 'Demo'
                         });
                     }
                 };
@@ -611,142 +579,103 @@
                 const formatMoney = (n) => new Intl.NumberFormat('vi-VN').format(n) + settings.value.currency;
                 const formatDateShort = (d) => new Date(d).toLocaleDateString('vi-VN', {day:'numeric', month:'numeric'});
 
-                // --- 4. EXPORT FUNCTIONS ---
                 const downloadCSV = () => {
                     const header = "Date,Type,Category,Amount,Note\n";
                     const rows = processedData.value.map(t => `${t.date},${t.type},${t.category},${t.amount},${t.note || ''}`).join("\n");
-                    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+                    const blob = new Blob([header + rows], { type: 'text/csv' });
                     const url = URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.setAttribute("href", url);
-                    link.setAttribute("download", "wealthpulse_export.csv");
-                    document.body.appendChild(link);
-                    link.click();
+                    const a = document.createElement('a'); a.href = url; a.download = 'wealthpulse_data.csv'; a.click();
                 };
 
                 const exportPDF = () => {
-                    const element = document.getElementById('dashboard-canvas');
-                    // Force background for capture
-                    const originalBg = element.style.backgroundColor;
-                    element.style.backgroundColor = isDark.value ? '#0F172A' : '#F3F4F6';
-                    
-                    html2canvas(element, { scale: 2 }).then(canvas => {
-                        const imgData = canvas.toDataURL('image/png');
-                        const pdf = new jspdf.jsPDF('l', 'mm', 'a4'); // Landscape
-                        const w = pdf.internal.pageSize.getWidth();
-                        const h = (canvas.height * w) / canvas.width;
-                        pdf.addImage(imgData, 'PNG', 0, 0, w, h);
-                        pdf.save('wealthpulse_report.pdf');
-                        element.style.backgroundColor = originalBg; // Reset
+                    const el = document.getElementById('dashboard-canvas');
+                    const origBg = el.style.backgroundColor;
+                    el.style.backgroundColor = isDark.value ? '#0F172A' : '#F3F4F6';
+                    html2canvas(el, { scale: 2 }).then(canvas => {
+                        const img = canvas.toDataURL('image/png');
+                        const pdf = new jspdf.jsPDF('l', 'mm', 'a4');
+                        pdf.addImage(img, 'PNG', 0, 0, 297, (canvas.height * 297) / canvas.width);
+                        pdf.save('report.pdf');
+                        el.style.backgroundColor = origBg;
                     });
                 };
 
-                // --- 5. CHART ENGINE (PLOTLY.JS) ---
                 const renderCharts = () => {
                     if (currentPage.value !== 'dashboard') return;
                     nextTick(() => {
                         const data = processedData.value;
-                        // Theme Colors
                         const textColor = isDark.value ? '#94A3B8' : '#64748B';
                         const gridColor = isDark.value ? '#334155' : '#E2E8F0';
-                        const accentColor = '#3B82F6';
-                        
                         const baseLayout = {
                             paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-                            font: { color: textColor, family: 'Inter, sans-serif' },
+                            font: { color: textColor, family: 'Inter' },
                             margin: { t: 30, b: 40, l: 40, r: 20 },
-                            xaxis: { showgrid: false, gridcolor: gridColor, zeroline: false },
-                            yaxis: { showgrid: true, gridcolor: gridColor, zeroline: false },
-                            showlegend: false,
-                            hovermode: 'x unified'
+                            xaxis: { showgrid: false, gridcolor: gridColor },
+                            yaxis: { showgrid: true, gridcolor: gridColor },
+                            showlegend: false
                         };
 
-                        // 1. TREND CHART (Interactive Selection)
                         const dates = [...new Set(data.map(t => t.date))].sort();
                         const incTrend = dates.map(d => data.filter(t => t.date === d && t.type === 'income').reduce((s,t) => s+t.amount, 0));
                         const expTrend = dates.map(d => data.filter(t => t.date === d && t.type === 'expense').reduce((s,t) => s+t.amount, 0));
 
                         Plotly.newPlot('chart-trend', [
-                            { x: dates, y: incTrend, type: 'scatter', mode: 'lines', name: 'Thu Nhập', line: {color: '#10B981', width: 3, shape: 'spline'}, fill: 'tozeroy', fillcolor: 'rgba(16, 185, 129, 0.1)' },
-                            { x: dates, y: expTrend, type: 'scatter', mode: 'lines', name: 'Chi Tiêu', line: {color: '#EF4444', width: 3, shape: 'spline'}, fill: 'tozeroy', fillcolor: 'rgba(239, 68, 68, 0.1)' }
+                            { x: dates, y: incTrend, type: 'scatter', mode: 'lines', line: {color: '#10B981', width: 3}, fill: 'tozeroy' },
+                            { x: dates, y: expTrend, type: 'scatter', mode: 'lines', line: {color: '#EF4444', width: 3}, fill: 'tozeroy' }
                         ], { ...baseLayout, dragmode: 'select' }, {displayModeBar: false});
+                        document.getElementById('chart-trend').on('plotly_selected', e => filters.value.dateRange = e ? [e.range.x[0].substring(0,10), e.range.x[1].substring(0,10)] : null);
 
-                        // Event Listener for Selection
-                        document.getElementById('chart-trend').on('plotly_selected', (e) => {
-                            if(e) filters.value.dateRange = [e.range.x[0].substring(0,10), e.range.x[1].substring(0,10)];
-                            else filters.value.dateRange = null;
-                        });
-
-                        // 2. DONUT CATEGORY (Interactive Click)
                         const expData = data.filter(t => t.type === 'expense');
                         const catMap = {}; expData.forEach(t => catMap[t.category] = (catMap[t.category]||0) + t.amount);
                         
                         Plotly.newPlot('chart-category', [{
                             labels: Object.keys(catMap), values: Object.values(catMap), type: 'pie', hole: 0.7,
-                            marker: { colors: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'] },
-                            textinfo: 'percent', hoverinfo: 'label+value'
+                            marker: { colors: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6'] }
                         }], { ...baseLayout, margin: {t:0,b:0,l:0,r:0} }, {displayModeBar: false});
+                        document.getElementById('chart-category').on('plotly_click', d => filters.value.visualCategory = d.points[0].label);
 
-                        document.getElementById('chart-category').on('plotly_click', (d) => filters.value.visualCategory = d.points[0].label);
-
-                        // 3. BUDGET vs ACTUAL
                         let cum = 0;
                         const actCum = dates.map(d => { cum += data.filter(t => t.date === d && t.type === 'expense').reduce((s,t)=>s+t.amount,0); return cum; });
                         const budLine = dates.map((_, i) => (settings.value.monthlyBudget / 30) * (i+1));
-
                         Plotly.newPlot('chart-budget', [
-                            { x: dates, y: actCum, type: 'scatter', fill: 'tozeroy', name: 'Thực tế', line: {color: '#8B5CF6', width: 3} },
-                            { x: dates, y: budLine, type: 'scatter', mode: 'lines', name: 'Ngân sách', line: {color: textColor, dash: 'dot', width: 1} }
+                            { x: dates, y: actCum, type: 'scatter', fill: 'tozeroy', line: {color: '#8B5CF6'} },
+                            { x: dates, y: budLine, type: 'scatter', mode: 'lines', line: {color: textColor, dash: 'dot'} }
                         ], baseLayout, {displayModeBar: false});
 
-                        // 4. TOP CATEGORIES
                         const sortedCats = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0, 5);
                         Plotly.newPlot('chart-top-cat', [{
-                            x: sortedCats.map(c=>c[0]), y: sortedCats.map(c=>c[1]), type: 'bar', 
-                            marker: {color: '#F59E0B', cornerradius: 4}
+                            x: sortedCats.map(c=>c[0]), y: sortedCats.map(c=>c[1]), type: 'bar', marker: {color: '#F59E0B'}
                         }], baseLayout, {displayModeBar: false});
-                        document.getElementById('chart-top-cat').on('plotly_click', (d) => filters.value.visualCategory = d.points[0].x);
+                        document.getElementById('chart-top-cat').on('plotly_click', d => filters.value.visualCategory = d.points[0].x);
 
-                        // 5. AREA SAVINGS
                         const savTrend = dates.map((d, i) => incTrend[i] - expTrend[i]);
-                        Plotly.newPlot('chart-area-savings', [{
-                            x: dates, y: savTrend, type: 'scatter', fill: 'tozeroy', line: {color: '#06B6D4', width: 2}
-                        }], baseLayout, {displayModeBar: false});
+                        Plotly.newPlot('chart-area-savings', [{ x: dates, y: savTrend, type: 'scatter', fill: 'tozeroy', line: {color: '#06B6D4'} }], baseLayout, {displayModeBar: false});
 
-                        // 6. WEEKEND
                         let w = 0, e = 0;
                         expData.forEach(t => { const d = new Date(t.date).getDay(); (d===0||d===6)?e+=t.amount:w+=t.amount; });
                         Plotly.newPlot('chart-weekend', [{
-                            labels: ['Trong tuần', 'Cuối tuần'], values: [w, e], type: 'pie', hole: 0.6,
-                            marker: { colors: ['#6366F1', '#14B8A6'] }, textinfo: 'label+percent'
+                            labels: ['Trong tuần', 'Cuối tuần'], values: [w, e], type: 'pie', hole: 0.6, marker: { colors: ['#6366F1', '#14B8A6'] }
                         }], { ...baseLayout, margin: {t:0,b:0,l:0,r:0} }, {displayModeBar: false});
                     });
                 };
 
-                // --- 6. LIFECYCLE HOOKS ---
                 onMounted(() => {
-                    // Set theme based on ref
                     document.documentElement.className = isDark.value ? 'dark' : '';
-                    
-                    auth.onAuthStateChanged(u => {
+                    if(auth) auth.onAuthStateChanged(u => {
                         user.value = u;
                         if(u) {
-                            // Listen to changes
                             db.ref(`users/${u.uid}/transactions`).on('value', s => rawTransactions.value = s.val() ? Object.values(s.val()) : []);
                             db.ref(`users/${u.uid}/settings`).on('value', s => { if(s.val()) settings.value = s.val(); });
                         }
                     });
+                    if(window.lucide) lucide.createIcons();
                 });
 
-                // Watchers to trigger re-renders
-                watch([processedData, currentPage, isDark], () => { 
-                    renderCharts(); 
-                    setTimeout(() => lucide.createIcons(), 100); 
-                });
+                watch([processedData, currentPage, isDark], () => { renderCharts(); setTimeout(() => lucide.createIcons(), 100); });
 
                 return {
                     user, currentPage, isDark, filters, form, settings, kpi, recentTransactions, 
-                    availableMonths, availableCategories, allCategories, firebaseConfig,
+                    availableMonths, availableCategories, allCategories,
                     login, logout, toggleTheme, addTransaction, resetData, generateDemoData, saveSettings, resetVisualFilters,
                     downloadCSV, exportPDF, formatMoney, formatDateShort
                 };
