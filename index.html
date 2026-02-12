@@ -1,785 +1,741 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance BI Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Analytics Dashboard Pro</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
+        /* --- 1. RESET & TYPOGRAPHY --- */
         :root {
-            /* Light Theme (Power BI Style) */
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --secondary: #64748b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
+            --primary: #0078d4; /* Microsoft Blue */
+            --primary-hover: #106ebe;
+            --secondary: #2b88d8;
+            --success: #107c10;
+            --danger: #d13438;
+            --warning: #ffb900;
             
-            --bg-body: #f3f4f6;
+            --bg-body: #f0f2f5;
             --bg-card: #ffffff;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
+            --bg-glass: rgba(255, 255, 255, 0.95);
             
-            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --text-main: #201f1e;
+            --text-muted: #605e5c;
+            
+            --border: #e1dfdd;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 8px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.1);
             --radius: 8px;
             
-            --sidebar-width: 240px;
-            --header-height: 70px;
+            --sidebar-width: 260px;
+            --header-height: 64px;
         }
 
         .dark-mode {
-            --bg-body: #111827;
-            --bg-card: #1f2937;
-            --text-main: #f9fafb;
-            --text-muted: #9ca3af;
-            --border: #374151;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --primary: #4cc9f0;
+            --primary-hover: #3a9dc2;
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --bg-glass: rgba(30, 30, 30, 0.95);
+            --text-main: #f3f2f1;
+            --text-muted: #a19f9d;
+            --border: #323130;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.4);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
         
         body {
+            font-family: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
-            transition: background-color 0.3s, color 0.3s;
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
-        }
-
-        /* --- Sidebar --- */
-        #sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--bg-card);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem;
-            z-index: 50;
-            transition: all 0.3s ease;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            margin-bottom: 8px;
-            border-radius: var(--radius);
-            color: var(--text-muted);
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background-color: #eff6ff;
-            color: var(--primary);
-        }
-        .dark-mode .nav-link:hover, .dark-mode .nav-link.active {
-            background-color: #374151;
-            color: var(--primary);
-        }
-
-        /* --- Main Content --- */
-        #main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
             height: 100vh;
             overflow: hidden;
-        }
-
-        /* Sticky Filter Bar */
-        .filter-bar {
-            height: auto;
-            min-height: var(--header-height);
-            background-color: var(--bg-card);
-            border-bottom: 1px solid var(--border);
-            padding: 10px 2rem;
             display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-            z-index: 40;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: background 0.3s, color 0.3s;
         }
 
-        .filter-group { display: flex; align-items: center; gap: 10px; }
-        
-        select, .btn {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            outline: none;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
+        /* --- 2. COMPONENTS --- */
+        /* Buttons */
         .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            font-weight: 500;
-            transition: opacity 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 8px 16px; border-radius: 4px; border: none; font-weight: 600;
+            font-size: 14px; cursor: pointer; transition: all 0.2s ease;
+            font-family: 'Segoe UI', sans-serif;
         }
-        .btn:hover { opacity: 0.9; }
-        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
-        .btn-danger { background-color: var(--danger); }
+        .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 2px 4px rgba(0,120,212,0.3); }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background-color: var(--bg-body); border-color: var(--primary); color: var(--primary); }
+        
+        .btn-danger { background-color: rgba(209, 52, 56, 0.1); color: var(--danger); }
+        .btn-danger:hover { background-color: var(--danger); color: white; }
 
-        /* Chips */
-        .active-filters-container {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-left: auto; /* Push to right */
+        /* Inputs */
+        input, select {
+            width: 100%; padding: 10px 12px; border-radius: 4px;
+            border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main);
+            font-size: 14px; outline: none; transition: border 0.2s, box-shadow 0.2s;
+            font-family: 'Segoe UI', sans-serif;
         }
-        .chip {
-            background-color: #dbeafe;
-            color: var(--primary);
-            padding: 4px 10px;
-            border-radius: 16px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .dark-mode .chip { background-color: #1e3a8a; color: #bfdbfe; }
-        .chip i { cursor: pointer; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(0,120,212,0.2); }
 
-        /* Pages Container */
-        .page-container {
-            padding: 2rem;
-            overflow-y: auto;
-            flex: 1;
-            display: none;
-        }
-        .page-container.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Dashboard Grid */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
+        /* Cards */
         .card {
-            background-color: var(--bg-card);
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
+            background-color: var(--bg-card); border-radius: var(--radius);
+            box-shadow: var(--shadow-md); padding: 20px;
+            border: 1px solid transparent;
+            display: flex; flex-direction: column;
+            position: relative;
         }
+        .dark-mode .card { border: 1px solid var(--border); }
 
-        .kpi-title { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-        .kpi-value { font-size: 1.75rem; font-weight: 700; margin: 8px 0; }
-        .kpi-sub { font-size: 0.8rem; display: flex; align-items: center; gap: 4px; }
-        .text-success { color: var(--success); }
-        .text-danger { color: var(--danger); }
-
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
+        /* --- 3. LAYOUT --- */
+        /* Sidebar */
+        #sidebar {
+            width: var(--sidebar-width); background-color: var(--bg-card);
+            border-right: 1px solid var(--border); display: flex; flex-direction: column;
+            z-index: 100; transition: transform 0.3s;
         }
-        .chart-card { height: 400px; padding: 1rem; }
-        .full-width { grid-column: 1 / -1; }
-
-        /* Forms */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            max-width: 800px;
-        }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-body); color: var(--text-main); }
         
-        /* Table */
-        .table-container { overflow-x: auto; margin-top: 2rem; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
-        th { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; }
-        
-        /* Mobile Nav */
-        #bottom-nav {
-            display: none;
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--bg-card);
-            border-top: 1px solid var(--border);
-            padding: 10px;
-            justify-content: space-around;
-            z-index: 100;
+        .brand {
+            height: var(--header-height); display: flex; align-items: center; padding: 0 24px;
+            font-size: 20px; font-weight: 700; color: var(--primary); gap: 10px;
+            border-bottom: 1px solid var(--border);
         }
 
-        /* Responsive */
+        .user-info {
+            padding: 20px; display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.02);
+        }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+        .user-details h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+        .user-details p { font-size: 12px; color: var(--text-muted); }
+
+        .nav-menu { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+        .nav-item {
+            padding: 12px 16px; border-radius: 6px; cursor: pointer;
+            display: flex; align-items: center; gap: 12px;
+            color: var(--text-muted); font-weight: 500; font-size: 15px;
+            transition: all 0.2s;
+        }
+        .nav-item:hover { background-color: var(--bg-body); color: var(--text-main); }
+        .nav-item.active { background-color: rgba(0,120,212,0.1); color: var(--primary); font-weight: 600; }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; width: 4px; height: 24px;
+            background: var(--primary); border-radius: 0 4px 4px 0;
+        }
+
+        /* Main Content */
+        #main-content {
+            flex: 1; display: flex; flex-direction: column; height: 100vh;
+            position: relative; overflow: hidden;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            height: var(--header-height); background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 24px; gap: 16px;
+            z-index: 90; position: sticky; top: 0;
+        }
+        .filter-group { display: flex; gap: 10px; align-items: center; }
+        .filter-select { min-width: 140px; height: 36px; padding: 0 10px; }
+
+        /* Page Container */
+        .page-scroll { flex: 1; overflow-y: auto; padding: 24px; scroll-behavior: smooth; }
+        .page { display: none; max-width: 1400px; margin: 0 auto; animation: fadeUp 0.4s ease-out; }
+        .page.active { display: block; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Dashboard Grid System */
+        .kpi-row {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px; margin-bottom: 24px;
+        }
+        .kpi-card-content { display: flex; flex-direction: column; }
+        .kpi-label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
+        .kpi-number { font-size: 28px; font-weight: 700; color: var(--text-main); margin: 8px 0 4px 0; }
+        .kpi-trend { font-size: 13px; display: flex; align-items: center; gap: 4px; }
+        .trend-up { color: var(--success); } .trend-down { color: var(--danger); }
+
+        .chart-row {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;
+        }
+        .chart-row.full { grid-template-columns: 1fr; }
+        
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .chart-title { font-size: 16px; font-weight: 600; color: var(--text-main); }
+
+        /* Data Table */
+        .table-wrapper { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; background: var(--bg-card); }
+        th { background: var(--bg-body); padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: rgba(0,0,0,0.01); }
+
+        /* --- 4. SCREENS (Login / Loading) --- */
+        .overlay-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: var(--bg-body);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .hidden { display: none !important; }
+        
+        .login-box {
+            width: 400px; padding: 40px; background: var(--bg-card);
+            border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center; border: 1px solid var(--border);
+        }
+        .login-icon { font-size: 48px; color: var(--primary); margin-bottom: 20px; }
+        .login-btn {
+            width: 100%; margin-top: 24px; padding: 12px;
+            background: white; border: 1px solid #ccc; border-radius: 6px;
+            font-weight: 600; color: #555; display: flex; align-items: center; justify-content: center; gap: 12px;
+            transition: all 0.2s;
+        }
+        .login-btn:hover { background: #f8f9fa; border-color: #bbb; }
+        
+        /* Spinner */
+        .loader { width: 48px; height: 48px; border: 4px solid var(--border); border-bottom-color: var(--primary); border-radius: 50%; animation: rotate 1s linear infinite; }
+        @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- 5. RESPONSIVE --- */
+        #bottom-nav { display: none; }
+        
+        @media (max-width: 900px) {
+            .chart-row { grid-template-columns: 1fr; }
+        }
+
         @media (max-width: 768px) {
-            #sidebar { display: none; }
-            #bottom-nav { display: flex; }
-            .filter-bar { flex-direction: column; align-items: stretch; }
-            .charts-grid { grid-template-columns: 1fr; }
-            .form-grid { grid-template-columns: 1fr; }
-            .active-filters-container { margin-left: 0; margin-top: 10px; }
-            .page-container { padding: 1rem; padding-bottom: 80px; } /* Space for bottom nav */
+            #sidebar { transform: translateX(-100%); position: fixed; height: 100%; box-shadow: 20px 0 50px rgba(0,0,0,0.1); }
+            #sidebar.open { transform: translateX(0); }
+            #main-content { margin-left: 0; padding-bottom: 70px; }
+            
+            .top-bar { flex-direction: column; height: auto; padding: 16px; align-items: stretch; }
+            .filter-group { flex-wrap: wrap; }
+            .filter-select { flex: 1; }
+            
+            #bottom-nav {
+                display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+                height: 60px; background: var(--bg-card); border-top: 1px solid var(--border);
+                justify-content: space-around; align-items: center; z-index: 999;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .b-nav-item { font-size: 20px; color: var(--text-muted); padding: 10px; border-radius: 50%; }
+            .b-nav-item.active { color: var(--primary); background: rgba(0,120,212,0.1); }
         }
     </style>
 </head>
 <body>
 
-    <aside id="sidebar">
-        <div class="logo">
-            <i class="fas fa-chart-pie"></i> FinDash
+    <div id="loading-screen" class="overlay-screen">
+        <div style="text-align: center;">
+            <div class="loader"></div>
+            <p style="margin-top: 16px; font-weight: 600; color: var(--text-muted);">Initializing Dashboard...</p>
         </div>
-        <nav>
-            <a class="nav-link active" onclick="app.nav('dashboard')"><i class="fas fa-home"></i> Dashboard</a>
-            <a class="nav-link" onclick="app.nav('add')"><i class="fas fa-plus-circle"></i> Add Tx</a>
-            <a class="nav-link" onclick="app.nav('settings')"><i class="fas fa-cog"></i> Settings</a>
-        </nav>
-        <div style="margin-top: auto;">
-            <div class="nav-link" onclick="app.toggleTheme()">
-                <i class="fas fa-adjust"></i> Dark/Light
-            </div>
-        </div>
-    </aside>
+    </div>
 
-    <div id="main-content">
+    <div id="login-screen" class="overlay-screen hidden">
+        <div class="login-box">
+            <div class="login-icon"><i class="fas fa-chart-pie"></i></div>
+            <h2 style="margin-bottom: 8px;">Welcome Back</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Sign in to access your financial analytics.</p>
+            <button id="btn-login-google" class="login-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="G">
+                Continue with Google
+            </button>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden" style="display: flex; width: 100%;">
         
-        <div class="filter-bar" id="top-bar">
-            <select id="filter-month" onchange="app.updateFilters('month', this.value)"></select>
-            <select id="filter-type" onchange="app.updateFilters('type', this.value)">
-                <option value="all">All Types</option>
-                <option value="Income">Income</option>
-                <option value="Expense">Expense</option>
-            </select>
-            <select id="filter-category" onchange="app.updateFilters('category', this.value)"></select>
-
-            <div class="active-filters-container" id="filter-chips"></div>
-
-            <div style="display: flex; gap: 8px; margin-left: auto;">
-                 <button class="btn btn-outline" onclick="app.resetFilters()" title="Reset Filters"><i class="fas fa-undo"></i></button>
-                 <button class="btn btn-outline" onclick="app.exportPDF()" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
+        <aside id="sidebar">
+            <div class="brand">
+                <i class="fas fa-chart-line"></i> <span>FinSight Pro</span>
             </div>
-        </div>
-
-        <div id="page-dashboard" class="page-container active">
-            <div class="kpi-grid">
-                <div class="card">
-                    <div class="kpi-title">Total Income</div>
-                    <div class="kpi-value text-success" id="kpi-income">0</div>
-                </div>
-                <div class="card">
-                    <div class="kpi-title">Total Expense</div>
-                    <div class="kpi-value text-danger" id="kpi-expense">0</div>
-                </div>
-                <div class="card">
-                    <div class="kpi-title">Net Savings</div>
-                    <div class="kpi-value" id="kpi-savings">0</div>
-                </div>
-                <div class="card">
-                    <div class="kpi-title">Budget Used</div>
-                    <div class="kpi-value" id="kpi-budget">0%</div>
-                    <div class="kpi-sub" id="kpi-budget-target">of Target</div>
+            
+            <div class="user-info">
+                <img id="user-avatar" class="avatar" src="" alt="">
+                <div class="user-details">
+                    <h4 id="user-name">User</h4>
+                    <p>Free Plan</p>
                 </div>
             </div>
 
-            <div class="charts-grid">
-                <div class="card chart-card full-width" id="chart-trend"></div>
-                <div class="card chart-card" id="chart-budget"></div>
-                <div class="card chart-card" id="chart-category"></div>
-                <div class="card chart-card" id="chart-top-bar"></div>
-                <div class="card chart-card" id="chart-daily-area"></div>
-                <div class="card chart-card" id="chart-weekday"></div>
-            </div>
-        </div>
-
-        <div id="page-add" class="page-container">
-            <div class="card">
-                <h2 style="margin-bottom: 1.5rem;">Add Transaction</h2>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="tx-date">
-                    </div>
-                    <div class="form-group">
-                        <label>Type</label>
-                        <select id="tx-type">
-                            <option value="Expense">Expense</option>
-                            <option value="Income">Income</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Category</label>
-                        <input type="text" id="tx-category" list="cat-suggestions" placeholder="e.g. Food, Rent">
-                        <datalist id="cat-suggestions">
-                            <option value="Food"><option value="Transport"><option value="Housing">
-                            <option value="Salary"><option value="Entertainment"><option value="Utilities">
-                        </datalist>
-                    </div>
-                    <div class="form-group">
-                        <label>Amount</label>
-                        <input type="number" id="tx-amount" step="0.01" placeholder="0.00">
-                    </div>
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                        <label>Note</label>
-                        <input type="text" id="tx-note" placeholder="Optional description">
-                    </div>
+            <div class="nav-menu">
+                <div class="nav-item active" onclick="app.navigate('dashboard')">
+                    <i class="fas fa-home" style="width: 20px;"></i> Dashboard
                 </div>
-                <div style="margin-top: 1rem; display: flex; gap: 10px;">
-                    <button class="btn" onclick="app.addTransaction()">Add Transaction</button>
+                <div class="nav-item" onclick="app.navigate('add')">
+                    <i class="fas fa-plus-circle" style="width: 20px;"></i> Transactions
+                </div>
+                <div class="nav-item" onclick="app.navigate('settings')">
+                    <i class="fas fa-cog" style="width: 20px;"></i> Settings
                 </div>
             </div>
 
-            <div style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
-                <button class="btn btn-outline" onclick="app.generateDemo()">+ Add 10 Demo Tx</button>
-                <button class="btn btn-danger" onclick="app.clearData()">Reset All Data</button>
-                <button class="btn btn-outline" onclick="app.exportCSV()">Download CSV</button>
-            </div>
-
-            <div class="card" style="margin-top: 2rem;">
-                <h3>Recent Transactions</h3>
-                <div class="table-container">
-                    <table id="tx-table">
-                        <thead>
-                            <tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Note</th></tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+            <div style="padding: 16px; border-top: 1px solid var(--border);">
+                <div class="nav-item" onclick="app.toggleTheme()">
+                    <i class="fas fa-moon" style="width: 20px;"></i> Dark Mode
+                </div>
+                <div class="nav-item" onclick="app.logout()" style="color: var(--danger);">
+                    <i class="fas fa-sign-out-alt" style="width: 20px;"></i> Sign Out
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <div id="page-settings" class="page-container">
-            <div class="card" style="max-width: 600px;">
-                <h2 style="margin-bottom: 1.5rem;">Settings</h2>
-                <div class="form-group">
-                    <label>Currency Symbol</label>
-                    <select id="set-currency" onchange="app.saveSettings()">
-                        <option value="$">$ (USD)</option>
-                        <option value="€">€ (EUR)</option>
-                        <option value="£">£ (GBP)</option>
-                        <option value="₫">₫ (VND)</option>
-                        <option value="¥">¥ (JPY)</option>
+        <main id="main-content">
+            
+            <div class="top-bar">
+                <div class="filter-group" style="flex: 1;">
+                    <select id="filter-month" class="filter-select" onchange="app.filterData()"></select>
+                    <select id="filter-type" class="filter-select" onchange="app.filterData()">
+                        <option value="all">All Types</option>
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
                     </select>
+                    <select id="filter-category" class="filter-select" onchange="app.filterData()"></select>
                 </div>
-                <div class="form-group">
-                    <label>Monthly Budget Limit</label>
-                    <input type="number" id="set-budget" onchange="app.saveSettings()">
+                
+                <div class="filter-group">
+                    <button class="btn btn-outline" onclick="app.resetFilters()" title="Reset Filters"><i class="fas fa-undo"></i></button>
+                    <button class="btn btn-outline" onclick="app.exportPDF()" title="Export Report"><i class="fas fa-file-pdf"></i> Export</button>
                 </div>
             </div>
-        </div>
+
+            <div class="page-scroll">
+                
+                <div id="page-dashboard" class="page active">
+                    <div class="kpi-row">
+                        <div class="card">
+                            <div class="kpi-label">Total Income</div>
+                            <div class="kpi-number" style="color: var(--success);" id="kpi-income">0</div>
+                            <div class="kpi-trend trend-up"><i class="fas fa-arrow-up"></i> Cash Inflow</div>
+                        </div>
+                        <div class="card">
+                            <div class="kpi-label">Total Expense</div>
+                            <div class="kpi-number" style="color: var(--danger);" id="kpi-expense">0</div>
+                            <div class="kpi-trend trend-down"><i class="fas fa-arrow-down"></i> Cash Outflow</div>
+                        </div>
+                        <div class="card">
+                            <div class="kpi-label">Net Savings</div>
+                            <div class="kpi-number" style="color: var(--primary);" id="kpi-savings">0</div>
+                            <div class="kpi-trend"><i class="fas fa-wallet"></i> Available</div>
+                        </div>
+                        <div class="card">
+                            <div class="kpi-label">Budget Usage</div>
+                            <div class="kpi-number" id="kpi-budget">0%</div>
+                            <div class="kpi-trend"><i class="fas fa-chart-pie"></i> of Monthly Limit</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-row">
+                        <div class="card">
+                            <div class="chart-header">
+                                <div class="chart-title">Income vs Expense Trend</div>
+                            </div>
+                            <div id="chart-trend" style="height: 320px;"></div>
+                        </div>
+                        <div class="card">
+                            <div class="chart-header">
+                                <div class="chart-title">By Category</div>
+                            </div>
+                            <div id="chart-donut" style="height: 320px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="chart-row">
+                        <div class="card">
+                            <div class="chart-header">
+                                <div class="chart-title">Budget vs Actual (Cumulative)</div>
+                            </div>
+                            <div id="chart-budget" style="height: 300px;"></div>
+                        </div>
+                        <div class="card">
+                            <div class="chart-header">
+                                <div class="chart-title">Top Spending</div>
+                            </div>
+                            <div id="chart-bar" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="page-add" class="page">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                        
+                        <div class="card">
+                            <h3 style="margin-bottom: 20px;">New Transaction</h3>
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div><label style="font-size:12px; font-weight:600; color:var(--text-muted)">Date</label>
+                                <input type="date" id="tx-date"></div>
+                                
+                                <div><label style="font-size:12px; font-weight:600; color:var(--text-muted)">Type</label>
+                                <select id="tx-type"><option value="Expense">Expense</option><option value="Income">Income</option></select></div>
+                                
+                                <div><label style="font-size:12px; font-weight:600; color:var(--text-muted)">Category</label>
+                                <input type="text" id="tx-category" list="cat-list" placeholder="e.g. Food, Salary">
+                                <datalist id="cat-list"><option value="Food"><option value="Rent"><option value="Transport"><option value="Salary"></datalist></div>
+                                
+                                <div><label style="font-size:12px; font-weight:600; color:var(--text-muted)">Amount</label>
+                                <input type="number" id="tx-amount" placeholder="0.00"></div>
+                                
+                                <button class="btn btn-primary" onclick="app.addTx()">Add Transaction</button>
+                                
+                                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                    <button class="btn btn-outline" style="flex:1" onclick="app.genDemo()">Demo Data</button>
+                                    <button class="btn btn-danger" onclick="app.clearData()"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="chart-header">
+                                <div class="chart-title">Recent Activity</div>
+                                <button class="btn btn-outline" style="font-size:12px; padding: 4px 8px;" onclick="app.exportCSV()">CSV</button>
+                            </div>
+                            <div class="table-wrapper">
+                                <table id="tx-table">
+                                    <thead><tr><th>Date</th><th>Category</th><th>Type</th><th>Amount</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="page-settings" class="page">
+                    <div class="card" style="max-width: 500px; margin: 0 auto;">
+                        <h3 style="margin-bottom: 20px;">Preferences</h3>
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <div>
+                                <label style="font-size:14px; font-weight:600; display:block; margin-bottom: 8px;">Currency Symbol</label>
+                                <select id="set-currency" onchange="app.saveSettings()">
+                                    <option value="$">USD ($)</option>
+                                    <option value="₫">VND (₫)</option>
+                                    <option value="€">EUR (€)</option>
+                                    <option value="£">GBP (£)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:14px; font-weight:600; display:block; margin-bottom: 8px;">Monthly Budget Target</label>
+                                <input type="number" id="set-budget" onchange="app.saveSettings()">
+                            </div>
+                            <div style="padding: 16px; background: rgba(255,185,0,0.1); border-radius: 6px; border: 1px solid var(--warning);">
+                                <i class="fas fa-info-circle" style="color: var(--warning);"></i> 
+                                <span style="font-size: 13px;">Settings are saved automatically to your account.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div> </main>
+        
+        <nav id="bottom-nav">
+            <div class="b-nav-item active" onclick="app.navigate('dashboard')"><i class="fas fa-home"></i></div>
+            <div class="b-nav-item" onclick="app.navigate('add')"><i class="fas fa-plus-circle"></i></div>
+            <div class="b-nav-item" onclick="app.navigate('settings')"><i class="fas fa-cog"></i></div>
+        </nav>
 
     </div>
 
-    <div id="bottom-nav">
-        <div class="nav-link active" onclick="app.nav('dashboard')"><i class="fas fa-home"></i></div>
-        <div class="nav-link" onclick="app.nav('add')"><i class="fas fa-plus-circle"></i></div>
-        <div class="nav-link" onclick="app.nav('settings')"><i class="fas fa-cog"></i></div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-    <script>
-        const app = {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDmV3I9ZQ-N866cZ5mzMhVLNHcKjfL8cQ0",
+            authDomain: "financial-tracking-app-bb3cb.firebaseapp.com",
+            databaseURL: "https://financial-tracking-app-bb3cb-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "financial-tracking-app-bb3cb",
+            storageBucket: "financial-tracking-app-bb3cb.firebasestorage.app",
+            messagingSenderId: "242060161334",
+            appId: "1:242060161334:web:e9a4e0c7f8758cd9770397",
+            measurementId: "G-NV4B6CWRBS"
+        };
+
+        const fApp = initializeApp(firebaseConfig);
+        const db = getDatabase(fApp);
+        const auth = getAuth(fApp);
+        
+        // GLOBAL APP CONTROLLER
+        window.app = {
+            user: null,
             data: [],
-            settings: { currency: 'vnd', budget: 10000000 },
+            settings: { currency: '₫', budget: 10000000 },
             filters: { month: 'all', type: 'all', category: 'all' },
-            visualFilters: { category: null, dateRange: null },
 
-            init: () => {
-                // Load from LocalStorage
-                const storedData = localStorage.getItem('finData');
-                const storedSettings = localStorage.getItem('finSettings');
+            // --- NAVIGATION ---
+            navigate: (pageId) => {
+                document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+                document.getElementById('page-' + pageId).classList.add('active');
                 
-                if (storedData) app.data = JSON.parse(storedData);
-                else app.generateDemo(true); // Initial seed
-
-                if (storedSettings) app.settings = JSON.parse(storedSettings);
-
-                // Initialize UI
-                document.getElementById('set-currency').value = app.settings.currency;
-                document.getElementById('set-budget').value = app.settings.budget;
-                document.getElementById('tx-date').valueAsDate = new Date();
+                // Update Menus
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.b-nav-item').forEach(el => el.classList.remove('active'));
                 
-                // Theme Check
-                if (localStorage.getItem('finTheme') === 'dark') document.body.classList.add('dark-mode');
-
-                app.updateGlobalDropdowns();
-                app.renderDashboard();
-                app.renderTable();
-            },
-
-            // --- Navigation ---
-            nav: (page) => {
-                document.querySelectorAll('.page-container').forEach(el => el.classList.remove('active'));
-                document.getElementById(`page-${page}`).classList.add('active');
-                
-                // Update Sidebar/Bottom Nav States
-                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-                // Simple logic to highlight correct icon index based on page name
-                const indices = { 'dashboard': 0, 'add': 1, 'settings': 2 };
-                const idx = indices[page];
-                if(idx !== undefined) {
-                    const sidebarLinks = document.querySelectorAll('#sidebar .nav-link');
-                    if(sidebarLinks[idx]) sidebarLinks[idx].classList.add('active');
-                    const bottomLinks = document.querySelectorAll('#bottom-nav .nav-link');
-                    if(bottomLinks[idx]) bottomLinks[idx].classList.add('active');
+                // Map index based on order
+                const idx = ['dashboard', 'add', 'settings'].indexOf(pageId);
+                if(idx !== -1) {
+                    document.querySelectorAll('.nav-menu .nav-item')[idx].classList.add('active');
+                    document.querySelectorAll('.b-nav-item')[idx].classList.add('active');
                 }
 
-                if (page === 'dashboard') {
-                    // Trigger resize for Plotly
-                    setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
-                }
+                if(pageId === 'dashboard') setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
             },
 
             toggleTheme: () => {
                 document.body.classList.toggle('dark-mode');
-                localStorage.setItem('finTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-                app.renderDashboard(); // Re-render charts for color update
+                app.renderCharts(); // Re-render for color
             },
 
-            // --- Data Logic ---
-            saveData: () => {
-                localStorage.setItem('finData', JSON.stringify(app.data));
-                app.updateGlobalDropdowns();
-                app.renderDashboard();
-                app.renderTable();
+            logout: () => signOut(auth),
+
+            // --- DATA ACTIONS ---
+            addTx: () => {
+                const date = document.getElementById('tx-date').value;
+                const type = document.getElementById('tx-type').value;
+                const cat = document.getElementById('tx-category').value;
+                const amt = parseFloat(document.getElementById('tx-amount').value);
+                
+                if(!date || !cat || isNaN(amt)) return alert("Please fill all fields properly.");
+                
+                push(ref(db, `users/${app.user.uid}/transactions`), {
+                    date, type, category: cat, amount: amt
+                });
+                alert("Saved!");
+                document.getElementById('tx-amount').value = '';
+            },
+
+            genDemo: () => {
+                const cats = ['Food', 'Transport', 'Rent', 'Salary', 'Bonus', 'Utilities', 'Shopping'];
+                for(let i=0; i<10; i++) {
+                    const type = Math.random() > 0.4 ? 'Expense' : 'Income';
+                    push(ref(db, `users/${app.user.uid}/transactions`), {
+                        date: new Date().toISOString().split('T')[0],
+                        type,
+                        category: cats[Math.floor(Math.random() * cats.length)],
+                        amount: Math.floor(Math.random() * 2000) + 100
+                    });
+                }
+            },
+
+            clearData: () => {
+                if(confirm("Delete ALL data?")) set(ref(db, `users/${app.user.uid}/transactions`), null);
             },
 
             saveSettings: () => {
                 app.settings.currency = document.getElementById('set-currency').value;
                 app.settings.budget = parseFloat(document.getElementById('set-budget').value) || 0;
-                localStorage.setItem('finSettings', JSON.stringify(app.settings));
-                app.renderDashboard();
+                localStorage.setItem('userSettings_' + app.user.uid, JSON.stringify(app.settings));
+                app.updateUI();
             },
 
-            addTransaction: () => {
-                const date = document.getElementById('tx-date').value;
-                const type = document.getElementById('tx-type').value;
-                const category = document.getElementById('tx-category').value;
-                const amount = parseFloat(document.getElementById('tx-amount').value);
-                const note = document.getElementById('tx-note').value;
-
-                if (!date || !amount || !category) return alert("Please fill all fields");
-
-                app.data.push({ id: Date.now(), date, type, category, amount, note });
-                app.saveData();
-                alert("Transaction Added");
-                document.getElementById('tx-amount').value = '';
-                document.getElementById('tx-note').value = '';
-            },
-
-            generateDemo: (isInit = false) => {
-                const cats = {
-                    'Expense': ['Food', 'Rent', 'Transport', 'Entertainment', 'Shopping', 'Utilities'],
-                    'Income': ['Salary', 'Freelance', 'Investments', 'Gift']
-                };
-                
-                const newTx = [];
-                for(let i=0; i < (isInit ? 50 : 10); i++) {
-                    const type = Math.random() > 0.3 ? 'Expense' : 'Income';
-                    const catList = cats[type];
-                    const cat = catList[Math.floor(Math.random() * catList.length)];
-                    const amount = type === 'Income' ? Math.floor(Math.random() * 20000) + 5000 : Math.floor(Math.random() * 500) + 20;
-                    
-                    const d = new Date();
-                    d.setDate(d.getDate() - Math.floor(Math.random() * 60)); // Last 60 days
-                    
-                    newTx.push({
-                        id: Date.now() + i,
-                        date: d.toISOString().split('T')[0],
-                        type,
-                        category: cat,
-                        amount,
-                        note: 'Demo Data'
-                    });
-                }
-                app.data = [...app.data, ...newTx];
-                app.saveData();
-            },
-
-            clearData: () => {
-                if(confirm("Delete all transactions?")) {
-                    app.data = [];
-                    app.saveData();
-                }
-            },
-
-            // --- Filters ---
-            updateGlobalDropdowns: () => {
-                // Populate Month Dropdown
-                const months = [...new Set(app.data.map(d => d.date.substring(0, 7)))].sort().reverse();
-                const mSelect = document.getElementById('filter-month');
-                const currentM = mSelect.value;
-                mSelect.innerHTML = '<option value="all">All Months</option>';
-                months.forEach(m => {
-                    const option = document.createElement('option');
-                    option.value = m;
-                    option.text = m;
-                    mSelect.appendChild(option);
-                });
-                if(currentM && months.includes(currentM)) mSelect.value = currentM;
-
-                // Populate Category Dropdown
-                const cats = [...new Set(app.data.map(d => d.category))].sort();
-                const cSelect = document.getElementById('filter-category');
-                const currentC = cSelect.value;
-                cSelect.innerHTML = '<option value="all">All Categories</option>';
-                cats.forEach(c => {
-                    const option = document.createElement('option');
-                    option.value = c;
-                    option.text = c;
-                    cSelect.appendChild(option);
-                });
-                if(currentC && cats.includes(currentC)) cSelect.value = currentC;
-            },
-
-            updateFilters: (key, value) => {
-                app.filters[key] = value;
-                app.renderDashboard();
-            },
-
-            setVisualFilter: (type, value) => {
-                if (type === 'category') app.visualFilters.category = value;
-                if (type === 'dateRange') app.visualFilters.dateRange = value;
-                app.renderDashboard();
+            // --- FILTERING ---
+            filterData: () => {
+                app.filters.month = document.getElementById('filter-month').value;
+                app.filters.type = document.getElementById('filter-type').value;
+                app.filters.category = document.getElementById('filter-category').value;
+                app.updateUI();
             },
 
             resetFilters: () => {
-                app.filters = { month: 'all', type: 'all', category: 'all' };
-                app.visualFilters = { category: null, dateRange: null };
                 document.getElementById('filter-month').value = 'all';
                 document.getElementById('filter-type').value = 'all';
                 document.getElementById('filter-category').value = 'all';
-                app.renderDashboard();
+                app.filterData();
             },
 
-            getFilteredData: () => {
+            getFiltered: () => {
                 return app.data.filter(d => {
-                    // 1. Global Dropdown Filters
-                    const monthMatch = app.filters.month === 'all' || d.date.startsWith(app.filters.month);
-                    const typeMatch = app.filters.type === 'all' || d.type === app.filters.type;
-                    const catMatch = app.filters.category === 'all' || d.category === app.filters.category;
-                    
-                    // 2. Visual Cross Filters
-                    const visCatMatch = !app.visualFilters.category || d.category === app.visualFilters.category;
-                    const visDateMatch = !app.visualFilters.dateRange || (d.date >= app.visualFilters.dateRange[0] && d.date <= app.visualFilters.dateRange[1]);
-
-                    return monthMatch && typeMatch && catMatch && visCatMatch && visDateMatch;
+                    const mMatch = app.filters.month === 'all' || d.date.startsWith(app.filters.month);
+                    const tMatch = app.filters.type === 'all' || d.type === app.filters.type;
+                    const cMatch = app.filters.category === 'all' || d.category === app.filters.category;
+                    return mMatch && tMatch && cMatch;
                 });
             },
 
-            // --- Visualization ---
-            renderDashboard: () => {
-                const subset = app.getFilteredData();
-                const currency = app.settings.currency;
-                const isDark = document.body.classList.contains('dark-mode');
-                
-                // Colors
-                const colorText = isDark ? '#f9fafb' : '#1f2937';
-                const colorGrid = isDark ? '#374151' : '#e5e7eb';
-                const colorBg = 'rgba(0,0,0,0)';
-                
-                // --- KPI Calculation ---
-                const totalInc = subset.filter(d=>d.type === 'Income').reduce((sum, d) => sum + d.amount, 0);
-                const totalExp = subset.filter(d=>d.type === 'Expense').reduce((sum, d) => sum + d.amount, 0);
-                const netSavings = totalInc - totalExp;
-                const budgetUsed = (totalExp / app.settings.budget) * 100;
+            // --- EXPORT ---
+            exportPDF: () => {
+                const el = document.getElementById('page-dashboard');
+                html2canvas(el, { scale: 2, backgroundColor: document.body.classList.contains('dark-mode') ? '#121212' : '#f0f2f5' }).then(cvs => {
+                    const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+                    const w = pdf.internal.pageSize.getWidth();
+                    const h = (cvs.height * w) / cvs.width;
+                    pdf.addImage(cvs.toDataURL('image/png'), 'PNG', 0, 0, w, h);
+                    pdf.save('dashboard.pdf');
+                });
+            },
 
-                document.getElementById('kpi-income').innerText = `${currency} ${totalInc.toLocaleString()}`;
-                document.getElementById('kpi-expense').innerText = `${currency} ${totalExp.toLocaleString()}`;
-                document.getElementById('kpi-savings').innerText = `${currency} ${netSavings.toLocaleString()}`;
-                document.getElementById('kpi-budget').innerText = `${budgetUsed.toFixed(1)}%`;
-                
-                // Update Filter Chips
-                const chipsDiv = document.getElementById('filter-chips');
-                chipsDiv.innerHTML = '';
-                if(app.visualFilters.category) chipsDiv.innerHTML += `<div class="chip">Category: ${app.visualFilters.category} <i class="fas fa-times" onclick="app.setVisualFilter('category', null)"></i></div>`;
-                if(app.visualFilters.dateRange) chipsDiv.innerHTML += `<div class="chip">Date Range Active <i class="fas fa-times" onclick="app.setVisualFilter('dateRange', null)"></i></div>`;
+            exportCSV: () => {
+                let csv = "Date,Type,Category,Amount\n";
+                app.getFiltered().forEach(d => csv += `${d.date},${d.type},${d.category},${d.amount}\n`);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'data.csv'; a.click();
+            },
 
-                // --- Chart Layout Common ---
-                const commonLayout = {
-                    paper_bgcolor: colorBg,
-                    plot_bgcolor: colorBg,
-                    font: { family: 'Inter', color: colorText },
-                    margin: { t: 30, b: 30, l: 30, r: 10 },
-                    xaxis: { gridcolor: colorGrid },
-                    yaxis: { gridcolor: colorGrid },
-                    hovermode: 'closest'
+            // --- RENDERERS ---
+            updateUI: () => {
+                // Populate Dropdowns if empty or data changed
+                const months = [...new Set(app.data.map(d => d.date.substring(0,7)))].sort().reverse();
+                const mSel = document.getElementById('filter-month');
+                if(mSel.options.length <= 1) {
+                    months.forEach(m => mSel.add(new Option(m, m)));
+                }
+
+                const cats = [...new Set(app.data.map(d => d.category))].sort();
+                const cSel = document.getElementById('filter-category');
+                if(cSel.options.length <= 1) {
+                    cats.forEach(c => cSel.add(new Option(c, c)));
+                }
+
+                // Render
+                app.renderKPIs();
+                app.renderTable();
+                app.renderCharts();
+            },
+
+            renderKPIs: () => {
+                const data = app.getFiltered();
+                const inc = data.filter(d=>d.type==='Income').reduce((s,x)=>s+x.amount,0);
+                const exp = data.filter(d=>d.type==='Expense').reduce((s,x)=>s+x.amount,0);
+                const cur = app.settings.currency;
+
+                const animateValue = (id, start, end) => {
+                    const el = document.getElementById(id);
+                    el.innerText = cur + end.toLocaleString(); // Simplified for perf
                 };
 
-                // 1. Line Trend (Income vs Expense)
-                const dates = [...new Set(subset.map(d=>d.date))].sort();
-                const incTrace = { x: dates, y: dates.map(dt => subset.filter(d=>d.date===dt && d.type==='Income').reduce((s,x)=>s+x.amount,0)), type: 'scatter', mode: 'lines+markers', name: 'Income', line: {color: '#10b981', width: 3} };
-                const expTrace = { x: dates, y: dates.map(dt => subset.filter(d=>d.date===dt && d.type==='Expense').reduce((s,x)=>s+x.amount,0)), type: 'scatter', mode: 'lines+markers', name: 'Expense', line: {color: '#ef4444', width: 3} };
+                animateValue('kpi-income', 0, inc);
+                animateValue('kpi-expense', 0, exp);
+                animateValue('kpi-savings', 0, inc - exp);
                 
-                Plotly.newPlot('chart-trend', [incTrace, expTrace], {
-                    ...commonLayout, 
-                    title: { text: 'Income vs Expense Trend', font: {size: 14} },
-                    dragmode: 'select'
-                }, {displayModeBar: false, responsive: true});
-                
-                document.getElementById('chart-trend').on('plotly_selected', (eventData) => {
-                    if(eventData) app.setVisualFilter('dateRange', eventData.range.x); 
-                });
-
-                // 2. Budget vs Actual (Cumulative Expense)
-                let cumExp = 0;
-                const cumData = dates.map(dt => {
-                    cumExp += subset.filter(d=>d.date===dt && d.type==='Expense').reduce((s,x)=>s+x.amount,0);
-                    return cumExp;
-                });
-                // Simple linear budget line approximation based on day of month vs total days
-                const budgetLine = dates.map((_, i) => (app.settings.budget / 30) * (i+1)); // Very rough approx
-
-                Plotly.newPlot('chart-budget', [
-                    { x: dates, y: cumData, type: 'scatter', fill: 'tozeroy', name: 'Actual', line: {color: '#2563eb'} },
-                    { x: dates, y: budgetLine, type: 'scatter', mode: 'lines', name: 'Budget Pace', line: {dash: 'dot', color: '#9ca3af'} }
-                ], { ...commonLayout, title: 'Cumulative Spending vs Budget' }, {displayModeBar: false, responsive: true});
-
-                // 3. Donut: Expense by Category
-                const expSubset = subset.filter(d => d.type === 'Expense');
-                const catMap = {};
-                expSubset.forEach(d => catMap[d.category] = (catMap[d.category] || 0) + d.amount);
-                
-                Plotly.newPlot('chart-category', [{
-                    labels: Object.keys(catMap),
-                    values: Object.values(catMap),
-                    type: 'pie', hole: 0.6,
-                    marker: { colors: ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'] }
-                }], { ...commonLayout, title: 'Expense by Category' }, {displayModeBar: false, responsive: true});
-                
-                document.getElementById('chart-category').on('plotly_click', (data) => {
-                    app.setVisualFilter('category', data.points[0].label);
-                });
-
-                // 4. Bar: Top Categories (Actual vs Budget - faked budget for demo)
-                const sortedCats = Object.keys(catMap).sort((a,b) => catMap[b] - catMap[a]).slice(0, 5);
-                Plotly.newPlot('chart-top-bar', [{
-                    x: sortedCats.map(c => catMap[c]),
-                    y: sortedCats,
-                    type: 'bar', orientation: 'h',
-                    marker: { color: '#2563eb', opacity: 0.8 }
-                }], { ...commonLayout, title: 'Top 5 Expense Categories' }, {displayModeBar: false, responsive: true});
-                
-                document.getElementById('chart-top-bar').on('plotly_click', (data) => {
-                    app.setVisualFilter('category', data.points[0].label);
-                });
-
-                // 5. Area: Daily Net Savings
-                const dailyNet = dates.map(dt => {
-                    const i = subset.filter(d=>d.date===dt && d.type==='Income').reduce((s,x)=>s+x.amount,0);
-                    const e = subset.filter(d=>d.date===dt && d.type==='Expense').reduce((s,x)=>s+x.amount,0);
-                    return i - e;
-                });
-                
-                Plotly.newPlot('chart-daily-area', [{
-                    x: dates, y: dailyNet, type: 'scatter', fill: 'tozeroy', line: {color: '#10b981'}
-                }], { ...commonLayout, title: 'Daily Net Savings' }, {displayModeBar: false, responsive: true});
-
-                // 6. Donut: Weekday vs Weekend
-                let weekendSum = 0, weekdaySum = 0;
-                expSubset.forEach(d => {
-                    const day = new Date(d.date).getDay();
-                    if(day === 0 || day === 6) weekendSum += d.amount;
-                    else weekdaySum += d.amount;
-                });
-                
-                Plotly.newPlot('chart-weekday', [{
-                    labels: ['Weekday', 'Weekend'], values: [weekdaySum, weekendSum], type: 'pie', hole: 0.6,
-                    marker: { colors: ['#6366f1', '#f59e0b'] }
-                }], { ...commonLayout, title: 'Weekday vs Weekend Spending' }, {displayModeBar: false, responsive: true});
-
+                const pct = app.settings.budget ? ((exp / app.settings.budget) * 100).toFixed(1) : 0;
+                document.getElementById('kpi-budget').innerText = pct + "%";
             },
 
             renderTable: () => {
                 const tbody = document.querySelector('#tx-table tbody');
                 tbody.innerHTML = '';
-                // Show last 20
-                const recent = [...app.data].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 20);
-                recent.forEach(tx => {
-                    const row = `<tr>
-                        <td>${tx.date}</td>
-                        <td class="${tx.type === 'Income' ? 'text-success' : 'text-danger'}">${tx.type}</td>
-                        <td>${tx.category}</td>
-                        <td>${app.settings.currency} ${tx.amount.toLocaleString()}</td>
-                        <td style="color:var(--text-muted); font-size:0.85rem">${tx.note}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
+                app.getFiltered().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10).forEach(d => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${d.date}</td>
+                            <td>${d.category}</td>
+                            <td><span style="color:${d.type==='Income'?'var(--success)':'var(--danger)'}bull; ${d.type}</span></td>
+                            <td>${app.settings.currency}${d.amount.toLocaleString()}</td>
+                        </tr>
+                    `;
                 });
             },
 
-            // --- Export ---
-            exportCSV: () => {
-                const subset = app.getFilteredData();
-                let csvContent = "data:text/csv;charset=utf-8,ID,Date,Type,Category,Amount,Note\n";
-                subset.forEach(row => {
-                    csvContent += `${row.id},${row.date},${row.type},${row.category},${row.amount},${row.note}\n`;
-                });
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "finance_data.csv");
-                document.body.appendChild(link);
-                link.click();
-            },
-
-            exportPDF: () => {
-                window.scrollTo(0,0);
-                const element = document.getElementById('page-dashboard');
+            renderCharts: () => {
+                const data = app.getFiltered();
+                const isDark = document.body.classList.contains('dark-mode');
+                const textColor = isDark ? '#f3f2f1' : '#201f1e';
+                const gridColor = isDark ? '#323130' : '#e1dfdd';
                 
-                // Temporarily expand height for capture
-                const originalStyle = element.style.cssText;
-                element.style.height = 'auto';
-                element.style.overflow = 'visible';
+                const commonLayout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    font: { family: 'Segoe UI', color: textColor },
+                    margin: { t: 20, l: 30, r: 10, b: 30 },
+                    xaxis: { gridcolor: gridColor },
+                    yaxis: { gridcolor: gridColor },
+                    showlegend: true,
+                    legend: { orientation: 'h', y: -0.2 }
+                };
 
-                html2canvas(element, { 
-                    scale: 2, 
-                    backgroundColor: document.body.classList.contains('dark-mode') ? '#111827' : '#f3f4f6' 
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                    
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    pdf.save("dashboard_report.pdf");
-                    
-                    // Reset style
-                    element.style.cssText = originalStyle;
-                });
+                // 1. Trend
+                const dates = [...new Set(data.map(d=>d.date))].sort();
+                const incS = dates.map(d => data.filter(x=>x.date===d && x.type==='Income').reduce((s,v)=>s+v.amount,0));
+                const expS = dates.map(d => data.filter(x=>x.date===d && x.type==='Expense').reduce((s,v)=>s+v.amount,0));
+                
+                Plotly.react('chart-trend', [
+                    { x: dates, y: incS, type: 'scatter', mode: 'lines', name: 'Income', line: {color: '#107c10', width: 3, shape: 'spline'} },
+                    { x: dates, y: expS, type: 'scatter', mode: 'lines', name: 'Expense', line: {color: '#d13438', width: 3, shape: 'spline'} }
+                ], commonLayout, {displayModeBar: false, responsive: true});
+
+                // 2. Donut
+                const expData = data.filter(d=>d.type==='Expense');
+                const catMap = {}; expData.forEach(d => catMap[d.category] = (catMap[d.category]||0)+d.amount);
+                Plotly.react('chart-donut', [{
+                    labels: Object.keys(catMap), values: Object.values(catMap), type: 'pie', hole: 0.6,
+                    marker: { colors: ['#0078d4', '#2b88d8', '#71afe5', '#deecf9', '#eff6fc'] }
+                }], {...commonLayout, margin: {t:0,b:0,l:0,r:0}}, {displayModeBar: false, responsive: true});
+
+                // 3. Budget Cumulative
+                let cum = 0;
+                const cumVals = dates.map(d => { cum += data.filter(x=>x.date===d && x.type==='Expense').reduce((s,v)=>s+v.amount,0); return cum; });
+                const budgetLine = dates.map((_,i) => (app.settings.budget/30)*(i+1));
+                
+                Plotly.react('chart-budget', [
+                    { x: dates, y: cumVals, type: 'scatter', fill: 'tozeroy', name: 'Actual', line: {color: '#0078d4'} },
+                    { x: dates, y: budgetLine, type: 'scatter', mode: 'lines', name: 'Budget', line: {dash: 'dot', color: '#a19f9d'} }
+                ], commonLayout, {displayModeBar: false, responsive: true});
+
+                // 4. Bar
+                const sorted = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+                Plotly.react('chart-bar', [{
+                    x: sorted.map(x=>x[1]), y: sorted.map(x=>x[0]), type: 'bar', orientation: 'h', marker: {color: '#0078d4'}
+                }], commonLayout, {displayModeBar: false, responsive: true});
             }
         };
 
-        // Start App
-        window.onload = app.init;
+        // --- AUTH & INIT ---
+        document.getElementById('btn-login-google').addEventListener('click', () => {
+            signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert(e.message));
+        });
+
+        onAuthStateChanged(auth, user => {
+            const loadScreen = document.getElementById('loading-screen');
+            const loginScreen = document.getElementById('login-screen');
+            const appContainer = document.getElementById('app-container');
+
+            if(user) {
+                app.user = user;
+                document.getElementById('user-name').innerText = user.displayName;
+                document.getElementById('user-avatar').src = user.photoURL;
+                
+                // Load Settings
+                const localSet = localStorage.getItem('userSettings_' + user.uid);
+                if(localSet) app.settings = JSON.parse(localSet);
+                document.getElementById('set-currency').value = app.settings.currency;
+                document.getElementById('set-budget').value = app.settings.budget;
+
+                // Load Data
+                onValue(ref(db, `users/${user.uid}/transactions`), snap => {
+                    const val = snap.val();
+                    app.data = val ? Object.values(val) : [];
+                    app.updateUI();
+                    
+                    // Transition
+                    loadScreen.classList.add('hidden');
+                    loginScreen.classList.add('hidden');
+                    appContainer.classList.remove('hidden');
+                    // Init Date Input
+                    document.getElementById('tx-date').valueAsDate = new Date();
+                });
+            } else {
+                app.user = null;
+                appContainer.classList.add('hidden');
+                loadScreen.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+            }
+        });
 
     </script>
 </body>
