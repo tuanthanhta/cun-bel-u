@@ -1,359 +1,304 @@
 <!DOCTYPE html>
-<html lang="vi" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WealthPulse | Power BI Ultimate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance BI Dashboard</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        // Màu chuẩn Power BI & Tài chính
-                        pbi: {
-                            base: '#F0F2F5',       // Xám nhạt nền
-                            darkBase: '#18181B',   // Đen nền
-                            card: '#FFFFFF',       // Trắng card
-                            darkCard: '#27272A',   // Xám card
-                            yellow: '#F2C811',     // Vàng Power BI
-                            blue: '#0EA5E9'        // Xanh dương
-                        }
-                    },
-                    fontFamily: { sans: ['"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'] },
-                    boxShadow: {
-                        'card': '0 1px 2px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05)',
-                        'float': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
-        /* CSS Tùy Chỉnh - Đảm bảo đẹp mượt mà */
-        body { transition: background-color 0.3s ease, color 0.3s ease; }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(0,0,0,0.05);
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            backdrop-filter: blur(10px);
-            display: flex; flex-direction: column; overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-body: #f3f4f6;
+            --bg-card: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --sidebar-width: 250px;
         }
-        .dark .glass-card {
-            background: rgba(39, 39, 42, 0.95);
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-        }
-        .glass-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
 
-        /* Scrollbar đẹp */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+        .dark-mode {
+            --bg-body: #111827;
+            --bg-card: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border: #374151;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         
-        /* Container biểu đồ */
-        .chart-box { width: 100%; height: 100%; min-height: 300px; position: relative; }
+        body { background-color: var(--bg-body); color: var(--text-main); transition: background 0.3s, color 0.3s; display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- Navigation --- */
+        #sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            height: 100vh;
+            position: fixed;
+            left: 0; top: 0;
+            z-index: 50;
+            transition: transform 0.3s;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; }
         
-        /* Animation */
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        .nav-item {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex; align-items: center; gap: 12px;
+            transition: all 0.2s;
+        }
+        .nav-item:hover, .nav-item.active { background-color: var(--primary); color: white; }
         
-        /* Ẩn khi chưa load xong để tránh vỡ giao diện */
-        [v-cloak] { display: none; }
+        .theme-toggle { margin-top: auto; cursor: pointer; padding: 10px; border: 1px solid var(--border); border-radius: 8px; text-align: center; }
+
+        /* Bottom Nav (Mobile) */
+        #bottom-nav { display: none; position: fixed; bottom: 0; width: 100%; background: var(--bg-card); border-top: 1px solid var(--border); padding: 10px; justify-content: space-around; z-index: 100; }
+        
+        /* --- Main Content --- */
+        #main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+            padding-bottom: 80px; /* Space for mobile nav */
+        }
+
+        /* --- Filter Bar --- */
+        .filter-bar {
+            position: sticky; top: 0;
+            background-color: var(--bg-card);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border);
+            z-index: 40;
+            display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        select, .btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-body);
+            color: var(--text-main);
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .btn { background: var(--primary); color: white; border: none; font-weight: 600; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-danger { background: var(--danger); }
+        
+        /* Filter Chips */
+        #active-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+        .chip { background: var(--primary); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
+        .chip i { cursor: pointer; }
+
+        /* --- Pages --- */
+        .page { display: none; padding: 2rem; animation: fadeIn 0.4s; }
+        .page.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Dashboard Grid --- */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi-card { background: var(--bg-card); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+        .kpi-title { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .kpi-value { font-size: 1.8rem; font-weight: 700; }
+        .kpi-sub { font-size: 0.8rem; color: var(--success); margin-top: 5px; }
+
+        .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 1.5rem; }
+        .chart-card { background: var(--bg-card); padding: 1rem; border-radius: 12px; box-shadow: var(--shadow); height: 400px; }
+        .chart-full { grid-column: span 2; }
+
+        /* --- Add Transaction --- */
+        .form-container { max-width: 600px; margin: 0 auto; background: var(--bg-card); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow); }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-body); color: var(--text-main); }
+        
+        .tx-table { width: 100%; border-collapse: collapse; margin-top: 2rem; background: var(--bg-card); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+        .tx-table th, .tx-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); }
+        .tx-table th { background-color: var(--bg-body); font-weight: 600; }
+
+        /* --- Settings --- */
+        .settings-card { max-width: 600px; background: var(--bg-card); padding: 2rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1rem; }
+
+        /* --- Responsiveness --- */
+        @media (max-width: 768px) {
+            #sidebar { display: none; }
+            #bottom-nav { display: flex; }
+            #main-content { margin-left: 0; padding-bottom: 80px; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .chart-full { grid-column: span 1; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            #active-filters { margin-left: 0; }
+        }
     </style>
 </head>
+<body>
 
-<body class="bg-pbi-base text-slate-800 dark:bg-pbi-darkBase dark:text-slate-200 h-screen overflow-hidden font-sans selection:bg-pbi-yellow selection:text-black">
-
-    <div id="crash-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:#18181b; color:#ef4444; padding:40px; text-align:center;">
-        <h1 style="font-size:2rem; font-weight:bold; margin-bottom:1rem;">⚠️ Ứng dụng không thể tải!</h1>
-        <p style="color:white; margin-bottom:2rem;">Lỗi kết nối Firebase. Vui lòng tắt <strong>AdBlock</strong> và tải lại trang.</p>
-        <button onclick="location.reload()" style="padding:10px 20px; background:white; color:black; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Tải lại trang (F5)</button>
-        <pre id="error-detail" style="margin-top:20px; background:#333; padding:15px; border-radius:8px; text-align:left; font-size:12px; color:#aaa; overflow:auto; max-height:300px;"></pre>
-    </div>
-
-    <div id="loading" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#F0F2F5] dark:bg-[#18181B] transition-opacity duration-500">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-[#F2C811] mb-4"></div>
-        <p class="font-bold text-slate-500 tracking-widest text-xs">ĐANG TẢI DỮ LIỆU...</p>
-    </div>
-
-    <div id="app" v-cloak class="h-full flex flex-col opacity-0 transition-opacity duration-700" :class="{ 'opacity-100': isReady }">
+    <nav id="sidebar">
+        <div class="logo"><i class="fas fa-chart-pie"></i> FinDash</div>
+        <div class="nav-item active" onclick="switchPage('dashboard')"><i class="fas fa-home"></i> Dashboard</div>
+        <div class="nav-item" onclick="switchPage('add')"><i class="fas fa-plus-circle"></i> Add Transaction</div>
+        <div class="nav-item" onclick="switchPage('settings')"><i class="fas fa-cog"></i> Settings</div>
         
-        <div v-if="!user" class="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-            <div class="bg-white dark:bg-zinc-800 p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center border-t-8 border-[#F2C811]">
-                <div class="w-16 h-16 bg-[#F2C811] rounded-xl mx-auto mb-6 flex items-center justify-center shadow-lg">
-                    <i data-lucide="bar-chart-2" class="w-8 h-8 text-black"></i>
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i> Toggle Dark Mode
+        </div>
+    </nav>
+
+    <main id="main-content">
+        
+        <div class="filter-bar" id="dashboard-filters">
+            <select id="filter-month" onchange="applyFilters()"><option value="all">All Months</option></select>
+            <select id="filter-type" onchange="applyFilters()">
+                <option value="all">All Types</option>
+                <option value="Income">Income</option>
+                <option value="Expense">Expense</option>
+            </select>
+            <select id="filter-category" onchange="applyFilters()"><option value="all">All Categories</option></select>
+            
+            <div id="active-filters"></div>
+            
+            <button class="btn btn-outline" onclick="resetFilters()" title="Clear Visual Filters"><i class="fas fa-undo"></i></button>
+            <button class="btn btn-outline" onclick="exportPDF()" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
+        </div>
+
+        <div id="dashboard" class="page active">
+            <div id="dashboard-content">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-title">Total Income</div>
+                        <div class="kpi-value text-success" id="kpi-income">$0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Total Expense</div>
+                        <div class="kpi-value text-danger" id="kpi-expense">$0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Net Savings</div>
+                        <div class="kpi-value" id="kpi-savings">$0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Budget Used</div>
+                        <div class="kpi-value" id="kpi-budget">0%</div>
+                        <div class="kpi-sub" id="kpi-budget-val">of target</div>
+                    </div>
                 </div>
-                <h1 class="text-3xl font-extrabold mb-2 dark:text-white">WealthPulse</h1>
-                <p class="text-slate-500 mb-8 font-medium">Đăng nhập để đồng bộ dữ liệu</p>
-                <button @click="login" class="w-full bg-black text-white hover:bg-gray-800 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-3 transition-all shadow-xl hover:scale-[1.02]">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6">
-                    <span>Đăng nhập Google</span>
-                </button>
+
+                <div class="charts-grid">
+                    <div class="chart-card chart-full" id="chart-trend"></div>
+                    <div class="chart-card" id="chart-budget-actual"></div>
+                    <div class="chart-card" id="chart-category"></div>
+                    <div class="chart-card" id="chart-bar-top"></div>
+                    <div class="chart-card" id="chart-savings-area"></div>
+                    <div class="chart-card" id="chart-weekday"></div>
+                </div>
             </div>
         </div>
 
-        <div v-else class="flex h-full">
-            
-            <aside class="hidden md:flex w-72 flex-col bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 z-20 shadow-2xl">
-                <div class="h-20 flex items-center px-6 border-b border-slate-100 dark:border-zinc-800">
-                    <div class="w-10 h-10 bg-[#F2C811] rounded-lg flex items-center justify-center mr-3 shadow-md text-black">
-                        <i data-lucide="activity" class="w-6 h-6"></i>
-                    </div>
-                    <span class="font-bold text-xl tracking-tight dark:text-white">WealthPulse</span>
+        <div id="add" class="page">
+            <div class="form-container">
+                <h2>Add Transaction</h2>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="tx-date">
                 </div>
-                
-                <nav class="flex-1 py-6 px-4 space-y-2">
-                    <button v-for="page in pages" :key="page.id" @click="currentPage = page.id" 
-                        :class="['w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all', 
-                        currentPage === page.id ? 'bg-[#F2C811] text-black shadow-lg shadow-yellow-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800']">
-                        <i :data-lucide="page.icon" class="w-5 h-5"></i> {{ page.label }}
-                    </button>
-                </nav>
-
-                <div class="p-4 border-t border-slate-100 dark:border-zinc-800">
-                    <div class="flex items-center gap-3 mb-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700">
-                        <img :src="user.photoURL" class="w-10 h-10 rounded-full border-2 border-[#F2C811]">
-                        <div class="overflow-hidden">
-                            <p class="font-bold text-sm truncate dark:text-white">{{ user.displayName }}</p>
-                            <button @click="logout" class="text-xs text-red-500 hover:underline font-semibold">Đăng xuất</button>
-                        </div>
-                    </div>
-                    <button @click="toggleTheme" class="w-full py-3 bg-slate-100 dark:bg-zinc-800 rounded-xl text-xs font-bold uppercase hover:bg-slate-200 dark:hover:bg-zinc-700 transition">
-                        {{ isDark ? 'Chế độ Sáng' : 'Chế độ Tối' }}
-                    </button>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="tx-type">
+                        <option value="Expense">Expense</option>
+                        <option value="Income">Income</option>
+                    </select>
                 </div>
-            </aside>
-
-            <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-                
-                <header v-if="currentPage === 'dashboard'" class="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-zinc-800 p-4 z-30 sticky top-0 shadow-sm flex flex-wrap items-center justify-between gap-4">
-                    
-                    <div class="flex flex-wrap items-center gap-4">
-                        <div class="flex items-center gap-2 text-sm font-bold px-3 py-1.5 bg-[#F2C811] text-black rounded-lg shadow-sm">
-                            <i data-lucide="filter" class="w-4 h-4"></i> LỌC
-                        </div>
-                        
-                        <select v-model="filters.month" class="bg-transparent font-bold text-sm cursor-pointer outline-none dark:text-white"><option value="all">Tất cả thời gian</option><option v-for="m in availableMonths" :value="m">{{ m }}</option></select>
-                        <div class="w-px h-6 bg-slate-300 dark:bg-zinc-700"></div>
-                        <select v-model="filters.type" class="bg-transparent font-bold text-sm cursor-pointer outline-none dark:text-white"><option value="all">Tất cả loại GD</option><option value="income">Thu nhập</option><option value="expense">Chi tiêu</option></select>
-                        <div class="w-px h-6 bg-slate-300 dark:bg-zinc-700"></div>
-                        <select v-model="filters.categoryDropdown" class="bg-transparent font-bold text-sm cursor-pointer outline-none dark:text-white"><option value="all">Tất cả danh mục</option><option v-for="c in allCategories" :value="c">{{ c }}</option></select>
-                    </div>
-
-                    <div class="flex-1 flex justify-center gap-2 flex-wrap">
-                        <span v-if="filters.visualCategory" class="text-xs bg-slate-800 text-white px-3 py-1 rounded-full font-bold flex items-center gap-2 shadow-md">
-                            Danh mục: {{ filters.visualCategory }} <button @click="filters.visualCategory=null"><i data-lucide="x" class="w-3 h-3"></i></button>
-                        </span>
-                        <span v-if="filters.dateRange" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-full font-bold flex items-center gap-2 shadow-md">
-                            Khoảng ngày chọn <button @click="filters.dateRange=null"><i data-lucide="x" class="w-3 h-3"></i></button>
-                        </span>
-                        <button v-if="filters.visualCategory || filters.dateRange" @click="resetVisualFilters" class="text-xs text-red-500 font-bold underline">Xóa lọc</button>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <button @click="downloadCSV" class="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-600 dark:text-slate-300" title="Xuất CSV"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i></button>
-                        <button @click="exportPDF" class="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-600 dark:text-slate-300" title="Xuất PDF"><i data-lucide="file-text" class="w-5 h-5"></i></button>
-                    </div>
-                </header>
-
-                <div v-if="currentPage === 'dashboard'" class="flex-1 overflow-y-auto p-4 md:p-6 scroll-smooth" id="dashboard-view">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        
-                        <div class="glass-card p-5 border-l-4 border-l-green-500">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tổng Thu Nhập</p>
-                            <h3 class="text-2xl font-black mt-1 text-slate-800 dark:text-white">{{ formatMoney(kpi.income) }}</h3>
-                        </div>
-                        <div class="glass-card p-5 border-l-4 border-l-red-500">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tổng Chi Tiêu</p>
-                            <h3 class="text-2xl font-black mt-1 text-slate-800 dark:text-white">{{ formatMoney(kpi.expense) }}</h3>
-                        </div>
-                        <div class="glass-card p-5 border-l-4 border-l-blue-500">
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tiết Kiệm Ròng</p>
-                            <h3 :class="['text-2xl font-black mt-1', kpi.savings >= 0 ? 'text-blue-500' : 'text-red-500']">{{ formatMoney(kpi.savings) }}</h3>
-                        </div>
-                        <div class="glass-card p-5 border-l-4 border-l-[#F2C811]">
-                            <div class="flex justify-between items-end mb-2">
-                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ngân Sách</p>
-                                <span class="font-bold text-sm dark:text-white">{{ kpi.budgetUsed }}%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 dark:bg-zinc-700 h-2 rounded-full overflow-hidden">
-                                <div class="bg-[#F2C811] h-full transition-all duration-500" :style="{width: Math.min(kpi.budgetUsed, 100) + '%'}"></div>
-                            </div>
-                        </div>
-
-                        <div class="glass-card md:col-span-2 lg:col-span-3">
-                            <div class="px-5 py-3 border-b border-slate-100 dark:border-zinc-700/50 flex justify-between items-center">
-                                <h4 class="font-bold text-sm text-slate-500 uppercase flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4"></i> Xu Hướng Dòng Tiền</h4>
-                                <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">Kéo chuột để lọc</span>
-                            </div>
-                            <div class="p-2 h-[350px]"><div id="chart-trend" class="chart-box"></div></div>
-                        </div>
-
-                        <div class="glass-card md:col-span-1">
-                            <div class="px-5 py-3 border-b border-slate-100 dark:border-zinc-700/50">
-                                <h4 class="font-bold text-sm text-slate-500 uppercase flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4"></i> Phân Bổ</h4>
-                            </div>
-                            <div class="p-2 h-[350px]"><div id="chart-category" class="chart-box"></div></div>
-                        </div>
-
-                        <div class="glass-card md:col-span-2">
-                            <div class="px-5 py-3 border-b border-slate-100 dark:border-zinc-700/50">
-                                <h4 class="font-bold text-sm text-slate-500 uppercase flex items-center gap-2"><i data-lucide="target" class="w-4 h-4"></i> Ngân Sách vs Thực Tế</h4>
-                            </div>
-                            <div class="p-2 h-[300px]"><div id="chart-budget" class="chart-box"></div></div>
-                        </div>
-
-                        <div class="glass-card md:col-span-2">
-                            <div class="px-5 py-3 border-b border-slate-100 dark:border-zinc-700/50">
-                                <h4 class="font-bold text-sm text-slate-500 uppercase flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-4 h-4"></i> Top Danh Mục</h4>
-                            </div>
-                            <div class="p-2 h-[300px]"><div id="chart-top-cat" class="chart-box"></div></div>
-                        </div>
-
-                        <div class="glass-card md:col-span-2">
-                            <div class="px-5 py-3 border-b border-slate-100 dark:border-zinc-700/50">
-                                <h4 class="font-bold text-sm text-slate-500 uppercase flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4"></i> Tiết Kiệm Hàng Ngày</h4>
-                            </div>
-                            <div class="p-2 h-[280px]"><div id="chart-area-savings" class="chart-box"></div></div>
-                        </div>
-
-                        <div class="glass-card md:col-span-2">
-                            <div class="px-5 py-3 border-b border-slate-100 dark:border-zinc-700/50">
-                                <h4 class="font-bold text-sm text-slate-500 uppercase flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4"></i> Trong Tuần vs Cuối Tuần</h4>
-                            </div>
-                            <div class="p-2 h-[280px]"><div id="chart-weekend" class="chart-box"></div></div>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" id="tx-category" list="category-list" placeholder="e.g., Food, Salary">
+                    <datalist id="category-list">
+                        <option value="Food"><option value="Transport"><option value="Salary"><option value="Rent"><option value="Entertainment">
+                    </datalist>
                 </div>
-
-                <div v-if="currentPage === 'add'" class="flex-1 overflow-y-auto p-4 md:p-6">
-                    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-                        
-                        <div class="glass-card p-6 h-fit border-t-4 border-t-[#F2C811]">
-                            <h2 class="text-xl font-bold mb-6 dark:text-white flex items-center gap-2"><i data-lucide="plus-circle" class="text-[#F2C811]"></i> Thêm Giao Dịch</h2>
-                            <form @submit.prevent="addTransaction" class="space-y-4">
-                                <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
-                                    <button type="button" @click="form.type='expense'" :class="['py-2 rounded-md font-bold text-sm transition', form.type==='expense'?'bg-white dark:bg-zinc-600 shadow text-red-500':'text-slate-500']">Chi Tiêu</button>
-                                    <button type="button" @click="form.type='income'" :class="['py-2 rounded-md font-bold text-sm transition', form.type==='income'?'bg-white dark:bg-zinc-600 shadow text-green-500':'text-slate-500']">Thu Nhập</button>
-                                </div>
-                                <div class="relative">
-                                    <span class="absolute left-4 top-3 text-lg font-bold text-slate-400">{{ settings.currency }}</span>
-                                    <input v-model.number="form.amount" type="number" placeholder="0" class="w-full p-3 pl-10 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl font-bold text-lg outline-none focus:ring-2 ring-[#F2C811] dark:text-white">
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <input v-model="form.date" type="date" class="w-full p-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none dark:text-white">
-                                    <select v-model="form.category" class="w-full p-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none dark:text-white">
-                                        <option v-for="c in availableCategories" :value="c">{{ c }}</option>
-                                    </select>
-                                </div>
-                                <input v-model="form.note" type="text" placeholder="Ghi chú (Tùy chọn)" class="w-full p-3 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none dark:text-white">
-                                <button type="submit" class="w-full py-3.5 bg-black dark:bg-white dark:text-black text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition active:scale-95 flex justify-center gap-2">
-                                    <i data-lucide="check"></i> Lưu Giao Dịch
-                                </button>
-                            </form>
-                            <div class="mt-6 pt-6 border-t border-slate-100 dark:border-zinc-800 space-y-2">
-                                <button @click="generateDemoData" class="w-full py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-bold text-xs rounded-lg hover:bg-blue-100 transition">+ Thêm 10 Giao Dịch Demo</button>
-                                <button @click="resetData" class="w-full py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold text-xs rounded-lg hover:bg-red-100 transition">Xóa Toàn Bộ Dữ Liệu</button>
-                            </div>
-                        </div>
-
-                        <div class="glass-card md:col-span-2 h-[600px] shadow-xl">
-                            <div class="p-5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-800/30 flex justify-between items-center">
-                                <h2 class="font-bold text-lg dark:text-white">Lịch Sử Giao Dịch</h2>
-                                <span class="text-xs font-bold text-slate-400">{{ recentTransactions.length }} mục gần nhất</span>
-                            </div>
-                            <div class="flex-1 overflow-y-auto">
-                                <table class="w-full text-sm text-left">
-                                    <thead class="bg-white dark:bg-zinc-900 sticky top-0 z-10 shadow-sm text-slate-500">
-                                        <tr><th class="p-4">Ngày</th><th class="p-4">Danh mục</th><th class="p-4">Ghi chú</th><th class="p-4 text-right">Số tiền</th></tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100 dark:divide-zinc-800">
-                                        <tr v-for="tx in recentTransactions" :key="tx.id" class="hover:bg-blue-50/50 dark:hover:bg-zinc-800 transition-colors group">
-                                            <td class="p-4 font-mono text-slate-500 text-xs">{{formatDateShort(tx.date)}}</td>
-                                            <td class="p-4 font-bold text-slate-700 dark:text-slate-200">{{tx.category}}</td>
-                                            <td class="p-4 italic text-slate-400 text-xs">{{tx.note}}</td>
-                                            <td :class="['p-4 text-right font-bold font-mono', tx.type==='income'?'text-green-600':'text-red-500']">{{formatMoney(tx.amount)}}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="tx-amount" step="0.01" placeholder="0.00">
                 </div>
-
-                <div v-if="currentPage === 'settings'" class="flex-1 p-6 overflow-y-auto">
-                    <div class="glass-card max-w-2xl mx-auto p-8 shadow-xl">
-                        <h2 class="text-2xl font-bold mb-8 pb-4 border-b border-slate-100 dark:border-zinc-800 dark:text-white">Cài Đặt Hệ Thống</h2>
-                        <div class="space-y-8">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-3">Đơn vị tiền tệ</label>
-                                <div class="flex gap-3">
-                                    <button v-for="c in ['₫', '$', '€', '¥']" @click="settings.currency=c;saveSettings()" 
-                                        :class="['w-12 h-12 rounded-xl font-bold text-lg border-2 transition-all flex items-center justify-center', settings.currency===c?'bg-[#F2C811] border-[#F2C811] text-black shadow-lg scale-110':'border-slate-200 dark:border-zinc-700 text-slate-400 hover:border-[#F2C811]']">
-                                        {{c}}
-                                    </button>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase mb-3">Ngân sách tháng mục tiêu</label>
-                                <div class="flex items-center bg-slate-50 dark:bg-zinc-900 border-2 border-slate-100 dark:border-zinc-800 rounded-2xl p-2 focus-within:border-[#F2C811] transition-colors">
-                                    <div class="w-12 h-12 flex items-center justify-center font-bold text-slate-400 bg-white dark:bg-zinc-800 rounded-xl shadow-sm">{{ settings.currency }}</div>
-                                    <input v-model.number="settings.monthlyBudget" @change="saveSettings" type="number" class="flex-1 bg-transparent text-2xl font-bold outline-none px-4 text-slate-700 dark:text-white">
-                                </div>
-                            </div>
-                            <div class="p-5 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-800/30 flex items-center gap-4">
-                                <i data-lucide="cloud-lightning" class="w-8 h-8 text-blue-600 dark:text-blue-400"></i>
-                                <div>
-                                    <h4 class="font-bold text-blue-700 dark:text-blue-300">Cloud Sync: Đang hoạt động</h4>
-                                    <p class="text-sm text-blue-600/70 dark:text-blue-400/70">Project ID: {{firebaseConfig.projectId}}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <input type="text" id="tx-note" placeholder="Optional description">
                 </div>
+                <button class="btn" style="width:100%" onclick="addTransaction()">Add Transaction</button>
+            </div>
 
-                <nav class="md:hidden bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 h-20 pb-safe flex justify-around items-center px-2 z-40 shrink-0 shadow-[0_-5px_10px_rgba(0,0,0,0.05)]">
-                    <button v-for="page in pages" :key="page.id" @click="currentPage = page.id" 
-                        :class="['flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all w-20', currentPage === page.id ? 'text-[#F2C811]' : 'text-slate-400']">
-                        <i :data-lucide="page.icon" class="w-6 h-6"></i>
-                        <span class="text-[10px] font-bold">{{ page.label }}</span>
-                    </button>
-                </nav>
+            <div style="margin-top: 2rem; display:flex; gap:10px; justify-content:center;">
+                <button class="btn" onclick="generateDemoData()">Generate 60-Day Demo Data</button>
+                <button class="btn btn-danger" onclick="clearAllData()">Reset Data</button>
+            </div>
 
-            </main>
+            <h3 style="margin-top: 2rem;">Recent Transactions</h3>
+            <table class="tx-table">
+                <thead><tr><th>Date</th><th>Category</th><th>Type</th><th>Amount</th></tr></thead>
+                <tbody id="tx-list-body"></tbody>
+            </table>
+            <button class="btn btn-outline" style="margin-top:1rem" onclick="downloadCSV()">Download CSV</button>
         </div>
+
+        <div id="settings" class="page">
+            <div class="settings-card">
+                <h2>Settings</h2>
+                <div class="form-group">
+                    <label>Currency Symbol</label>
+                    <select id="set-currency" onchange="saveSettings()">
+                        <option value="$">$ (USD)</option>
+                        <option value="€">€ (EUR)</option>
+                        <option value="£">£ (GBP)</option>
+                        <option value="₫">₫ (VND)</option>
+                        <option value="¥">¥ (JPY)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Monthly Budget Limit</label>
+                    <input type="number" id="set-budget" onchange="saveSettings()" value="2000">
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="bottom-nav">
+        <div class="nav-item active" onclick="switchPage('dashboard')"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="switchPage('add')"><i class="fas fa-plus-circle"></i></div>
+        <div class="nav-item" onclick="switchPage('settings')"><i class="fas fa-cog"></i></div>
     </div>
 
-    <script>
-        // 1. CƠ CHẾ BẮT LỖI TOÀN CỤC (ANTI-CRASH)
-        window.onerror = function(message, source, lineno) {
-            document.getElementById('loading').style.display = 'none';
-            const crashOverlay = document.getElementById('crash-overlay');
-            const errorDetail = document.getElementById('error-detail');
-            crashOverlay.style.display = 'block';
-            errorDetail.innerText += `\n[Lỗi] ${message}\n[Vị trí] Dòng ${lineno}\n`;
-            return false;
-        };
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-        // 2. CẤU HÌNH FIREBASE
+        // --- Firebase Config ---
         const firebaseConfig = {
             apiKey: "AIzaSyDmV3I9ZQ-N866cZ5mzMhVLNHcKjfL8cQ0",
             authDomain: "financial-tracking-app-bb3cb.firebaseapp.com",
@@ -365,162 +310,363 @@
             measurementId: "G-NV4B6CWRBS"
         };
 
-        // Khởi tạo an toàn
-        let auth, db;
-        try {
-            if (typeof firebase === 'undefined') throw new Error("Firebase SDK bị chặn bởi AdBlock.");
-            firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth();
-            db = firebase.database();
-        } catch (e) {
-            window.onerror(e.message, "Init", 0);
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'transactions');
+
+        // --- State Management ---
+        let appState = {
+            transactions: [],
+            settings: { currency: '$', budget: 2000 },
+            filters: { month: 'all', type: 'all', category: 'all' },
+            visualFilters: { category: null, dateRange: null } // Cross-filtering
+        };
+
+        // --- Data Loading ---
+        onValue(dbRef, (snapshot) => {
+            const data = snapshot.val();
+            appState.transactions = data ? Object.values(data) : [];
+            updateUI();
+        });
+
+        // Load Settings from LocalStorage (User preference specific)
+        const savedSettings = localStorage.getItem('finSettings');
+        if(savedSettings) appState.settings = JSON.parse(savedSettings);
+        document.getElementById('set-currency').value = appState.settings.currency;
+        document.getElementById('set-budget').value = appState.settings.budget;
+
+        // --- Global Functions (Exposed to Window) ---
+        window.switchPage = (pageId) => {
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            // Highlight Nav
+            const navIndex = ['dashboard', 'add', 'settings'].indexOf(pageId);
+            if(navIndex > -1) {
+                document.querySelectorAll('#sidebar .nav-item')[navIndex].classList.add('active');
+                document.querySelectorAll('#bottom-nav .nav-item')[navIndex].classList.add('active');
+            }
+            
+            // Resize charts if dashboard
+            if(pageId === 'dashboard') {
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+            }
+        };
+
+        window.toggleTheme = () => {
+            document.body.classList.toggle('dark-mode');
+            updateChartsTheme();
+        };
+
+        window.saveSettings = () => {
+            appState.settings.currency = document.getElementById('set-currency').value;
+            appState.settings.budget = parseFloat(document.getElementById('set-budget').value) || 0;
+            localStorage.setItem('finSettings', JSON.stringify(appState.settings));
+            updateUI();
+        };
+
+        window.addTransaction = () => {
+            const date = document.getElementById('tx-date').value;
+            const type = document.getElementById('tx-type').value;
+            const category = document.getElementById('tx-category').value;
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const note = document.getElementById('tx-note').value;
+
+            if(!date || !amount || !category) return alert("Please fill required fields");
+
+            push(dbRef, { date, type, category, amount, note });
+            alert("Transaction Added");
+            document.getElementById('tx-amount').value = '';
+            document.getElementById('tx-note').value = '';
+        };
+
+        window.generateDemoData = () => {
+            const categories = { 'Expense': ['Food', 'Rent', 'Transport', 'Entertainment', 'Bills'], 'Income': ['Salary', 'Freelance', 'Investments'] };
+            const batch = {};
+            for(let i=0; i<30; i++) {
+                const type = Math.random() > 0.3 ? 'Expense' : 'Income';
+                const cats = categories[type];
+                const cat = cats[Math.floor(Math.random() * cats.length)];
+                const amt = type === 'Income' ? Math.floor(Math.random() * 2000) + 1000 : Math.floor(Math.random() * 100) + 10;
+                const d = new Date();
+                d.setDate(d.getDate() - Math.floor(Math.random() * 60));
+                
+                push(dbRef, {
+                    date: d.toISOString().split('T')[0],
+                    type: type,
+                    category: cat,
+                    amount: amt,
+                    note: 'Demo Data'
+                });
+            }
+        };
+
+        window.clearAllData = () => {
+            if(confirm("Delete all data?")) set(dbRef, null);
+        };
+
+        window.applyFilters = () => {
+            appState.filters.month = document.getElementById('filter-month').value;
+            appState.filters.type = document.getElementById('filter-type').value;
+            appState.filters.category = document.getElementById('filter-category').value;
+            renderDashboard();
+        };
+
+        window.resetFilters = () => {
+            appState.visualFilters = { category: null, dateRange: null };
+            document.getElementById('filter-month').value = 'all';
+            document.getElementById('filter-type').value = 'all';
+            document.getElementById('filter-category').value = 'all';
+            applyFilters();
+        };
+        
+        window.downloadCSV = () => {
+            let csv = "Date,Type,Category,Amount,Note\n";
+            appState.transactions.forEach(tx => {
+                csv += `${tx.date},${tx.type},${tx.category},${tx.amount},${tx.note}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'transactions.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        window.exportPDF = () => {
+            const element = document.getElementById('dashboard-content');
+            html2canvas(element, { scale: 2, backgroundColor: document.body.classList.contains('dark-mode') ? '#111827' : '#f3f4f6' }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save("dashboard.pdf");
+            });
+        };
+
+        // --- UI Updates ---
+        function updateUI() {
+            populateFilterDropdowns();
+            renderTransactionsList();
+            renderDashboard();
         }
 
-        // 3. VUE APP
-        const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
-
-        createApp({
-            setup() {
-                const isReady = ref(false);
-                const user = ref(null);
-                const currentPage = ref('dashboard');
-                const isDark = ref(true);
-                const rawTransactions = ref([]);
-                const settings = ref({ currency: '₫', monthlyBudget: 10000000 });
+        function getFilteredData() {
+            return appState.transactions.filter(tx => {
+                const txDate = new Date(tx.date);
+                const monthKey = `${txDate.getFullYear()}-${String(txDate.getMonth()+1).padStart(2,'0')}`;
                 
-                const filters = ref({ month: 'all', type: 'all', categoryDropdown: 'all', visualCategory: null, dateRange: null });
-                const form = ref({ amount: '', type: 'expense', category: 'Ăn uống', date: new Date().toISOString().split('T')[0], note: '' });
-
-                const pages = [{id:'dashboard',label:'Báo Cáo',icon:'layout-dashboard'},{id:'add',label:'Nhập Liệu',icon:'plus-square'},{id:'settings',label:'Cài Đặt',icon:'settings'}];
-                const categories = { expense: ['Ăn uống','Di chuyển','Nhà cửa','Mua sắm','Giải trí','Sức khỏe','Hóa đơn','Khác'], income: ['Lương','Thưởng','Đầu tư','Bán hàng','Quà tặng','Khác'] };
-
-                const allCategories = computed(()=>[...categories.expense, ...categories.income]);
-                const availableCategories = computed(()=>categories[form.value.type]);
-                const availableMonths = computed(()=>[...new Set(rawTransactions.value.map(t=>t.date.substring(0,7)))].sort().reverse());
-
-                const processedData = computed(() => rawTransactions.value.filter(t => {
-                    if(filters.value.month!=='all' && !t.date.startsWith(filters.value.month)) return false;
-                    if(filters.value.type!=='all' && t.type!==filters.value.type) return false;
-                    if(filters.value.categoryDropdown!=='all' && t.category!==filters.value.categoryDropdown) return false;
-                    if(filters.value.visualCategory && t.category!==filters.value.visualCategory) return false;
-                    if(filters.value.dateRange && (t.date < filters.value.dateRange[0] || t.date > filters.value.dateRange[1])) return false;
-                    return true;
-                }).sort((a,b)=>new Date(a.date)-new Date(b.date)));
-
-                const kpi = computed(() => {
-                    const d = processedData.value;
-                    const inc = d.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
-                    const exp = d.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
-                    const used = settings.value.monthlyBudget ? Math.round((exp/settings.value.monthlyBudget)*100) : 0;
-                    return { income: inc, expense: exp, savings: inc-exp, budgetUsed: used };
-                });
-
-                const recentTransactions = computed(()=>[...processedData.value].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,50));
-
-                const login = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-                const logout = () => auth.signOut();
-                const toggleTheme = () => { isDark.value=!isDark.value; document.documentElement.className=isDark.value?'dark':''; renderCharts(); };
-                const saveSettings = () => { if(user.value) db.ref(`users/${user.value.uid}/settings`).set(settings.value); };
-                const addTransaction = () => { if(!user.value) return; db.ref(`users/${user.value.uid}/transactions`).push({...form.value, id:Date.now()}); form.value.amount=''; alert('Đã lưu!'); };
-                const resetData = () => { if(confirm("Xóa toàn bộ dữ liệu?")) db.ref(`users/${user.value.uid}/transactions`).remove(); };
-                const resetVisualFilters = () => { filters.value.visualCategory=null; filters.value.dateRange=null; };
+                // Global Dropdown Filters
+                const matchMonth = appState.filters.month === 'all' || monthKey === appState.filters.month;
+                const matchType = appState.filters.type === 'all' || tx.type === appState.filters.type;
+                const matchCat = appState.filters.category === 'all' || tx.category === appState.filters.category;
                 
-                const generateDemoData = () => {
-                    if(!user.value) return;
-                    for(let i=0;i<10;i++) {
-                        const type = Math.random()>0.7?'income':'expense';
-                        db.ref(`users/${user.value.uid}/transactions`).push({
-                            id: Date.now()+i, date: new Date(Date.now()-Math.floor(Math.random()*60*86400000)).toISOString().split('T')[0],
-                            type, category: categories[type][Math.floor(Math.random()*categories[type].length)], amount: Math.floor(Math.random()*2000000)+50000, note: 'Demo'
-                        });
+                // Visual Interaction Filters (Cross-Filtering)
+                const matchVisualCat = !appState.visualFilters.category || tx.category === appState.visualFilters.category;
+                const matchVisualDate = !appState.visualFilters.dateRange || (tx.date >= appState.visualFilters.dateRange[0] && tx.date <= appState.visualFilters.dateRange[1]);
+
+                return matchMonth && matchType && matchCat && matchVisualCat && matchVisualDate;
+            });
+        }
+
+        function populateFilterDropdowns() {
+            const months = new Set();
+            const categories = new Set();
+            appState.transactions.forEach(tx => {
+                months.add(tx.date.substring(0, 7)); // YYYY-MM
+                categories.add(tx.category);
+            });
+
+            const monthSel = document.getElementById('filter-month');
+            const catSel = document.getElementById('filter-category');
+            
+            // Preserve current selection if exists
+            const currMonth = monthSel.value;
+            const currCat = catSel.value;
+
+            // Clear (keep first option)
+            while(monthSel.options.length > 1) monthSel.remove(1);
+            while(catSel.options.length > 1) catSel.remove(1);
+
+            Array.from(months).sort().reverse().forEach(m => {
+                const opt = new Option(m, m);
+                monthSel.add(opt);
+            });
+            Array.from(categories).sort().forEach(c => {
+                const opt = new Option(c, c);
+                catSel.add(opt);
+            });
+
+            monthSel.value = currMonth;
+            catSel.value = currCat;
+        }
+
+        function renderTransactionsList() {
+            const tbody = document.getElementById('tx-list-body');
+            tbody.innerHTML = '';
+            // Sort by date desc, take top 10
+            const sorted = [...appState.transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+            
+            sorted.forEach(tx => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${tx.date}</td>
+                    <td>${tx.category}</td>
+                    <td style="color: ${tx.type==='Income'? 'var(--success)' : 'var(--danger)'}">${tx.type}</td>
+                    <td>${appState.settings.currency}${tx.amount.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- DASHBOARD RENDERER (PLOTLY) ---
+        function renderDashboard() {
+            const data = getFilteredData();
+            const cur = appState.settings.currency;
+            const isDark = document.body.classList.contains('dark-mode');
+            
+            // Layout Defaults
+            const layoutCommon = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: isDark ? '#f9fafb' : '#111827' },
+                margin: { t: 40, b: 40, l: 40, r: 20 },
+                showlegend: true
+            };
+
+            // 1. KPIs
+            const totalInc = data.filter(d => d.type === 'Income').reduce((s, d) => s + d.amount, 0);
+            const totalExp = data.filter(d => d.type === 'Expense').reduce((s, d) => s + d.amount, 0);
+            const savings = totalInc - totalExp;
+            
+            document.getElementById('kpi-income').innerText = `${cur}${totalInc.toLocaleString()}`;
+            document.getElementById('kpi-expense').innerText = `${cur}${totalExp.toLocaleString()}`;
+            document.getElementById('kpi-savings').innerText = `${cur}${savings.toLocaleString()}`;
+            
+            const budgetPct = appState.settings.budget > 0 ? (totalExp / appState.settings.budget) * 100 : 0;
+            document.getElementById('kpi-budget').innerText = `${budgetPct.toFixed(1)}%`;
+
+            // Update Filter Chips
+            const chipContainer = document.getElementById('active-filters');
+            chipContainer.innerHTML = '';
+            if(appState.visualFilters.category) chipContainer.innerHTML += `<span class="chip">${appState.visualFilters.category} <i class="fas fa-times" onclick="window.clearVisualFilter('cat')"></i></span>`;
+            if(appState.visualFilters.dateRange) chipContainer.innerHTML += `<span class="chip">Date Range <i class="fas fa-times" onclick="window.clearVisualFilter('date')"></i></span>`;
+
+            // 2. Line Trend (Income vs Expense)
+            // Group by Date
+            const dateMap = {};
+            data.forEach(tx => {
+                if(!dateMap[tx.date]) dateMap[tx.date] = { income: 0, expense: 0 };
+                if(tx.type === 'Income') dateMap[tx.date].income += tx.amount;
+                else dateMap[tx.date].expense += tx.amount;
+            });
+            const sortedDates = Object.keys(dateMap).sort();
+            
+            Plotly.newPlot('chart-trend', [
+                { x: sortedDates, y: sortedDates.map(d => dateMap[d].income), type: 'scatter', mode: 'lines+markers', name: 'Income', line: {color: '#10b981'} },
+                { x: sortedDates, y: sortedDates.map(d => dateMap[d].expense), type: 'scatter', mode: 'lines+markers', name: 'Expense', line: {color: '#ef4444'} }
+            ], { ...layoutCommon, title: 'Income vs Expense Trend', dragmode: 'select' }, {responsive: true})
+            .then(gd => {
+                gd.on('plotly_selected', (eventData) => {
+                    if (eventData && eventData.range) {
+                        appState.visualFilters.dateRange = eventData.range.x;
+                        updateUI(); // Recursive render with filter
                     }
-                };
-
-                const downloadCSV = () => {
-                    const header = "Date,Type,Category,Amount,Note\n";
-                    const rows = processedData.value.map(t=>`${t.date},${t.type},${t.category},${t.amount},${t.note||''}`).join("\n");
-                    const blob = new Blob([header+rows], {type:'text/csv;charset=utf-8;'});
-                    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "data.csv"; link.click();
-                };
-
-                const exportPDF = () => {
-                    const el = document.getElementById('dashboard-view');
-                    const orig = el.style.backgroundColor; el.style.backgroundColor = isDark.value?'#18181B':'#F0F2F5';
-                    html2canvas(el,{scale:2}).then(c=>{
-                        const pdf = new jspdf.jsPDF('l','mm','a4'); pdf.addImage(c.toDataURL('image/png'),'PNG',0,0,297,(c.height*297)/c.width); pdf.save('report.pdf'); el.style.backgroundColor = orig;
-                    });
-                };
-
-                const renderCharts = () => {
-                    if(currentPage.value!=='dashboard') return;
-                    nextTick(() => {
-                        const d = processedData.value;
-                        const colors = ['#EF4444','#F59E0B','#10B981','#3B82F6','#8B5CF6','#EC4899'];
-                        const txtColor = isDark.value?'#A1A1AA':'#475569';
-                        const gridColor = isDark.value?'#27272A':'#E2E8F0';
-                        
-                        const layout = {
-                            paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
-                            font:{color:txtColor, family:'Segoe UI'}, margin:{t:30,b:30,l:30,r:10},
-                            xaxis:{showgrid:false, gridcolor:gridColor}, yaxis:{showgrid:true, gridcolor:gridColor}, showlegend:false, hovermode:'x unified'
-                        };
-
-                        const dates = [...new Set(d.map(t=>t.date))].sort();
-                        const incTrend = dates.map(dt=>d.filter(t=>t.date===dt && t.type==='income').reduce((s,t)=>s+t.amount,0));
-                        const expTrend = dates.map(dt=>d.filter(t=>t.date===dt && t.type==='expense').reduce((s,t)=>s+t.amount,0));
-
-                        // 1. Trend
-                        Plotly.newPlot('chart-trend', [
-                            {x:dates, y:incTrend, type:'scatter', mode:'lines', name:'Thu', line:{color:'#10B981', width:3, shape:'spline'}, fill:'tozeroy', fillcolor:'rgba(16,185,129,0.1)'},
-                            {x:dates, y:expTrend, type:'scatter', mode:'lines', name:'Chi', line:{color:'#EF4444', width:3, shape:'spline'}, fill:'tozeroy', fillcolor:'rgba(239,68,68,0.1)'}
-                        ], {...layout, dragmode:'select'}, {displayModeBar:false});
-                        document.getElementById('chart-trend').on('plotly_selected', e => filters.value.dateRange = e ? [e.range.x[0].substring(0,10), e.range.x[1].substring(0,10)] : null);
-
-                        // 2. Donut
-                        const expD = d.filter(t=>t.type==='expense'); const catMap={}; expD.forEach(t=>catMap[t.category]=(catMap[t.category]||0)+t.amount);
-                        Plotly.newPlot('chart-category', [{labels:Object.keys(catMap), values:Object.values(catMap), type:'pie', hole:0.7, marker:{colors}}], {...layout, margin:{t:0,b:0,l:0,r:0}}, {displayModeBar:false});
-                        document.getElementById('chart-category').on('plotly_click', d => filters.value.visualCategory = d.points[0].label);
-
-                        // 3. Budget
-                        let cum=0; const act = dates.map(dt=>{cum+=d.filter(t=>t.date===dt && t.type==='expense').reduce((s,t)=>s+t.amount,0); return cum;});
-                        const bud = dates.map((_,i)=>(settings.value.monthlyBudget/30)*(i+1));
-                        Plotly.newPlot('chart-budget', [{x:dates, y:act, type:'scatter', fill:'tozeroy', name:'Thực tế', line:{color:'#8B5CF6'}}, {x:dates, y:bud, type:'scatter', mode:'lines', name:'Mục tiêu', line:{color:txtColor, dash:'dot'}}], layout, {displayModeBar:false});
-
-                        // 4. Top Cat
-                        const sortedC = Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
-                        Plotly.newPlot('chart-top-cat', [{x:sortedC.map(c=>c[0]), y:sortedC.map(c=>c[1]), type:'bar', marker:{color:'#F59E0B', cornerradius:4}}], layout, {displayModeBar:false});
-                        document.getElementById('chart-top-cat').on('plotly_click', d => filters.value.visualCategory = d.points[0].x);
-
-                        // 5. Savings
-                        const sav = dates.map((_,i)=>incTrend[i]-expTrend[i]);
-                        Plotly.newPlot('chart-area-savings', [{x:dates, y:sav, type:'scatter', fill:'tozeroy', line:{color:'#0EA5E9'}}], layout, {displayModeBar:false});
-
-                        // 6. Weekend
-                        let w=0,e=0; expD.forEach(t=>{const day=new Date(t.date).getDay(); (day===0||day===6)?e+=t.amount:w+=t.amount});
-                        Plotly.newPlot('chart-weekend', [{labels:['Trong tuần','Cuối tuần'], values:[w,e], type:'pie', hole:0.6, marker:{colors:['#6366F1','#14B8A6']}}], {...layout, margin:{t:0,b:0,l:0,r:0}}, {displayModeBar:false});
-                    });
-                };
-
-                onMounted(() => {
-                    document.documentElement.className = isDark.value?'dark':'';
-                    // Tự động tắt loading screen sau 2s nếu firebase load chậm
-                    setTimeout(() => { document.getElementById('loading').style.display='none'; isReady.value=true; }, 1500);
-                    
-                    if(auth) auth.onAuthStateChanged(u => {
-                        user.value = u;
-                        if(u) {
-                            db.ref(`users/${u.uid}/transactions`).on('value', s => rawTransactions.value = s.val()?Object.values(s.val()):[]);
-                            db.ref(`users/${u.uid}/settings`).on('value', s => { if(s.val()) settings.value=s.val(); });
-                        }
-                    });
-                    if(window.lucide) lucide.createIcons();
                 });
+            });
 
-                watch([processedData, currentPage, isDark], () => { renderCharts(); setTimeout(()=>lucide.createIcons(),100); });
+            // 3. Budget vs Actual (Expense Cumulative)
+            let cumExp = 0;
+            const cumExpArr = sortedDates.map(d => {
+                cumExp += dateMap[d].expense;
+                return cumExp;
+            });
+            // Simple straight line for budget (approximation)
+            const dailyBudget = appState.settings.budget / 30; // Rough daily
+            const budgetLine = sortedDates.map((_, i) => (i+1) * dailyBudget);
 
-                return { user, isReady, currentPage, isDark, filters, form, settings, kpi, recentTransactions, availableMonths, availableCategories, allCategories, login, logout, toggleTheme, addTransaction, resetData, generateDemoData, saveSettings, resetVisualFilters, downloadCSV, exportPDF, firebaseConfig, formatMoney: n => new Intl.NumberFormat('vi-VN').format(n)+settings.value.currency, formatDateShort: d => d.split('-').reverse().join('/') };
-            }
-        }).mount('#app');
+            Plotly.newPlot('chart-budget-actual', [
+                { x: sortedDates, y: cumExpArr, type: 'scatter', fill: 'tozeroy', name: 'Actual Cumulative', line: {color: '#6366f1'} },
+                { x: sortedDates, y: budgetLine, type: 'scatter', mode: 'lines', name: 'Budget Pace', line: {dash: 'dot', color: '#9ca3af'} }
+            ], { ...layoutCommon, title: 'Budget vs Actual (Cumulative)' }, {responsive: true});
+
+            // 4. Donut: Expense by Category
+            const expByCat = {};
+            data.filter(d => d.type === 'Expense').forEach(d => {
+                expByCat[d.category] = (expByCat[d.category] || 0) + d.amount;
+            });
+            
+            Plotly.newPlot('chart-category', [{
+                labels: Object.keys(expByCat),
+                values: Object.values(expByCat),
+                type: 'pie', hole: 0.4,
+                marker: { colors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] }
+            }], { ...layoutCommon, title: 'Expense by Category' }, {responsive: true})
+            .then(gd => {
+                gd.on('plotly_click', (data) => {
+                    appState.visualFilters.category = data.points[0].label;
+                    updateUI();
+                });
+            });
+
+            // 5. Bar: Top Categories (Budget vs Actual - faked budget for categories as 120% of avg)
+            const sortedCats = Object.keys(expByCat).sort((a,b) => expByCat[b] - expByCat[a]).slice(0, 5);
+            Plotly.newPlot('chart-bar-top', [{
+                x: sortedCats.map(c => expByCat[c]),
+                y: sortedCats,
+                type: 'bar', orientation: 'h',
+                marker: { color: '#6366f1' }
+            }], { ...layoutCommon, title: 'Top Expense Categories', margin: {l: 100} }, {responsive: true})
+            .then(gd => {
+                gd.on('plotly_click', (data) => {
+                    appState.visualFilters.category = data.points[0].label;
+                    updateUI();
+                });
+            });
+
+            // 6. Area: Daily Net Savings
+            Plotly.newPlot('chart-savings-area', [{
+                x: sortedDates,
+                y: sortedDates.map(d => dateMap[d].income - dateMap[d].expense),
+                type: 'scatter', fill: 'tozeroy',
+                line: { color: '#10b981' }
+            }], { ...layoutCommon, title: 'Daily Net Savings' }, {responsive: true});
+
+            // 7. Weekday vs Weekend (Donut)
+            let weekend = 0, weekday = 0;
+            data.filter(d => d.type === 'Expense').forEach(d => {
+                const day = new Date(d.date).getDay();
+                if(day === 0 || day === 6) weekend += d.amount;
+                else weekday += d.amount;
+            });
+            Plotly.newPlot('chart-weekday', [{
+                labels: ['Weekday', 'Weekend'],
+                values: [weekday, weekend],
+                type: 'pie', hole: 0.6,
+                marker: { colors: ['#3b82f6', '#f97316'] }
+            }], { ...layoutCommon, title: 'Weekday vs Weekend Spending' }, {responsive: true});
+        }
+
+        // Helper for clearing chips
+        window.clearVisualFilter = (type) => {
+            if(type === 'cat') appState.visualFilters.category = null;
+            if(type === 'date') appState.visualFilters.dateRange = null;
+            updateUI();
+        };
+
+        function updateChartsTheme() {
+            renderDashboard();
+        }
+
+        // Set default date
+        document.getElementById('tx-date').valueAsDate = new Date();
     </script>
 </body>
 </html>
