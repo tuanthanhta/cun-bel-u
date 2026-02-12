@@ -2,13 +2,13 @@
 <html lang="vi" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WealthPulse | Quản Lý Tài Chính Cá Nhân</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WealthPulse | Quản Lý Tài Chính</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -20,261 +20,131 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: { 500: '#3B82F6', 600: '#2563EB', 900: '#1E3A8A' }, // Xanh dương chủ đạo
-                        income: '#10B981', // Xanh lá
-                        expense: '#EF4444', // Đỏ
+                        brand: { 500: '#3B82F6', 600: '#2563EB', 900: '#1E3A8A' },
                         dark: { 800: '#1e293b', 900: '#0f172a' }
                     }
                 }
             }
         }
     </script>
-
     <style>
-        /* Hiệu ứng kính mờ (Glassmorphism) */
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .dark .glass {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        /* Hiệu ứng chuyển động */
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-        .fade-enter-from, .fade-leave-to { opacity: 0; }
-        
-        /* Tinh chỉnh thanh cuộn */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
-        
-        /* Ẩn thanh cuộn cho mobile nhưng vẫn vuốt được */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        [v-cloak] { display: none; } /* Ẩn code khi chưa load xong */
     </style>
 </head>
 
-<body class="bg-gray-100 text-slate-800 dark:bg-dark-900 dark:text-slate-200 transition-colors duration-300 font-sans selection:bg-brand-500 selection:text-white">
+<body class="bg-gray-900 text-white h-screen overflow-hidden font-sans">
 
-    <div id="app" class="h-screen flex flex-col overflow-hidden relative">
+    <div id="error-msg" style="display:none; padding: 20px; text-align: center; color: red;">
+        <h2>⚠️ Web chưa chạy được!</h2>
+        <p>Vui lòng tắt AdBlock hoặc kiểm tra Console (F12) để xem lỗi.</p>
+    </div>
+
+    <div id="app" v-cloak class="h-full flex flex-col">
         
-        <transition name="fade">
-            <div v-if="!user" class="fixed inset-0 z-50 flex items-center justify-center bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');">
-                <div class="absolute inset-0 bg-dark-900/90 backdrop-blur-sm"></div>
-                <div class="relative z-10 glass p-8 rounded-3xl shadow-2xl max-w-md w-full text-center mx-4 border-t border-white/10">
-                    <div class="w-20 h-20 bg-gradient-to-tr from-brand-500 to-cyan-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-6 shadow-brand-500/20">
-                        <i data-lucide="wallet" class="text-white w-10 h-10"></i>
-                    </div>
-                    <h1 class="text-4xl font-bold text-white mb-2 tracking-tight">WealthPulse</h1>
-                    <p class="text-slate-400 mb-8 font-light">Quản lý tài chính cá nhân thông minh.<br>Đồng bộ mọi lúc, mọi nơi.</p>
-                    
-                    <button @click="login" class="group w-full bg-white hover:bg-gray-50 text-slate-900 font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] shadow-xl">
-                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6 group-hover:rotate-12 transition-transform" alt="Google">
-                        <span>Đăng nhập bằng Google</span>
-                    </button>
-                    
-                    <div class="mt-8 flex items-center justify-center gap-2 text-xs text-slate-500">
-                        <i data-lucide="lock" class="w-3 h-3"></i>
-                        <span>Bảo mật an toàn bởi Google Firebase</span>
-                    </div>
+        <div v-if="!user" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1920')] bg-cover bg-center">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+            <div class="relative z-10 p-8 glass rounded-2xl max-w-md w-full text-center border border-white/10 mx-4">
+                <div class="w-16 h-16 bg-blue-600 rounded-xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-blue-500/30">
+                    <i data-lucide="wallet" class="w-8 h-8 text-white"></i>
+                </div>
+                <h1 class="text-3xl font-bold mb-2">WealthPulse</h1>
+                <p class="text-gray-400 mb-8">Đăng nhập để đồng bộ dữ liệu</p>
+                
+                <button @click="login" class="w-full bg-white text-gray-900 font-bold py-3 rounded-xl hover:scale-105 transition flex items-center justify-center gap-3">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6">
+                    <span>Đăng nhập Google</span>
+                </button>
+                <div v-if="loginError" class="mt-4 text-red-400 text-sm bg-red-900/20 p-2 rounded">
+                    Lỗi: {{ loginError }}
                 </div>
             </div>
-        </transition>
+        </div>
 
         <div v-else class="flex h-full">
-            
-            <aside class="hidden md:flex w-72 flex-col glass border-r border-white/5 z-20 transition-all">
-                <div class="p-6 flex items-center gap-3 border-b border-white/5">
-                    <div class="w-10 h-10 bg-gradient-to-tr from-brand-500 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/20">
-                        <i data-lucide="activity" class="text-white w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <h2 class="font-bold text-lg">WealthPulse</h2>
-                        <span class="text-xs text-brand-500 font-medium px-2 py-0.5 bg-brand-500/10 rounded-full">Pro Member</span>
-                    </div>
+            <aside class="hidden md:flex w-64 flex-col glass border-r border-white/5 p-4">
+                <div class="flex items-center gap-3 px-2 mb-8">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><i data-lucide="activity" class="w-5 h-5"></i></div>
+                    <span class="font-bold text-lg">WealthPulse</span>
                 </div>
-
-                <nav class="flex-1 px-4 py-6 space-y-2">
+                <nav class="space-y-2 flex-1">
                     <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id" 
-                        :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group', currentTab === tab.id ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-white']">
-                        <i :data-lucide="tab.icon" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
-                        <span class="font-medium">{{ tab.label }}</span>
+                        :class="['w-full flex items-center gap-3 px-4 py-3 rounded-xl transition', currentTab === tab.id ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/5']">
+                        <i :data-lucide="tab.icon" class="w-5 h-5"></i> {{ tab.label }}
                     </button>
                 </nav>
-
-                <div class="p-4 m-4 rounded-2xl bg-slate-800/50 border border-white/5">
-                    <div class="flex items-center gap-3 mb-3">
-                        <img :src="user.photoURL" class="w-10 h-10 rounded-full border-2 border-brand-500" alt="Avatar">
-                        <div class="overflow-hidden">
-                            <p class="text-sm font-bold truncate text-white">{{ user.displayName }}</p>
-                            <p class="text-xs text-slate-400 truncate">Online</p>
-                        </div>
+                <div class="mt-auto pt-4 border-t border-white/10 flex items-center gap-3">
+                    <img :src="user.photoURL" class="w-8 h-8 rounded-full">
+                    <div class="text-xs overflow-hidden">
+                        <p class="font-bold truncate">{{ user.displayName }}</p>
+                        <button @click="logout" class="text-red-400 hover:underline">Đăng xuất</button>
                     </div>
-                    <button @click="logout" class="w-full text-xs text-red-400 hover:text-red-300 py-2 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-colors">
-                        Đăng xuất
-                    </button>
                 </div>
             </aside>
 
-            <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50 dark:bg-dark-900">
-                
-                <header class="md:hidden h-16 glass border-b border-white/5 flex items-center justify-between px-4 z-30 shrink-0">
-                    <div class="flex items-center gap-2">
-                         <div class="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white">
-                            <i data-lucide="activity" class="w-5 h-5"></i>
-                        </div>
-                        <span class="font-bold text-lg">WealthPulse</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <img :src="user.photoURL" @click="logout" class="w-8 h-8 rounded-full border border-slate-600 cursor-pointer" alt="Avatar">
-                    </div>
+            <main class="flex-1 flex flex-col relative overflow-hidden bg-gray-900">
+                <header class="md:hidden h-16 glass flex items-center justify-between px-4 shrink-0">
+                    <span class="font-bold">WealthPulse</span>
+                    <img :src="user.photoURL" @click="logout" class="w-8 h-8 rounded-full border border-gray-600">
                 </header>
 
-                <div class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth pb-24 md:pb-8">
-                    
-                    <div v-if="currentTab === 'dashboard'" class="space-y-6 animate-fade-in">
+                <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
+                    <div v-if="currentTab === 'dashboard'" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="glass p-5 rounded-2xl border-l-4 border-green-500 relative overflow-hidden">
-                                <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Tổng Thu Nhập</p>
-                                <h3 class="text-2xl font-bold text-white">{{ formatCurrency(totalIncome) }}</h3>
-                                <i data-lucide="trending-up" class="absolute right-3 top-3 text-green-500 w-8 h-8 opacity-20"></i>
+                            <div class="glass p-6 rounded-2xl border-l-4 border-green-500">
+                                <p class="text-gray-400 text-xs uppercase font-bold">Thu nhập</p>
+                                <h3 class="text-2xl font-bold">{{ formatVND(totalIncome) }}</h3>
                             </div>
-                            <div class="glass p-5 rounded-2xl border-l-4 border-red-500 relative overflow-hidden">
-                                <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Tổng Chi Tiêu</p>
-                                <h3 class="text-2xl font-bold text-white">{{ formatCurrency(totalExpense) }}</h3>
-                                <i data-lucide="trending-down" class="absolute right-3 top-3 text-red-500 w-8 h-8 opacity-20"></i>
+                            <div class="glass p-6 rounded-2xl border-l-4 border-red-500">
+                                <p class="text-gray-400 text-xs uppercase font-bold">Chi tiêu</p>
+                                <h3 class="text-2xl font-bold">{{ formatVND(totalExpense) }}</h3>
                             </div>
-                            <div class="glass p-5 rounded-2xl border-l-4 border-brand-500 relative overflow-hidden">
-                                <p class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Số Dư Hiện Tại</p>
-                                <h3 :class="['text-2xl font-bold', balance >= 0 ? 'text-brand-400' : 'text-red-400']">{{ formatCurrency(balance) }}</h3>
-                                <i data-lucide="wallet" class="absolute right-3 top-3 text-brand-500 w-8 h-8 opacity-20"></i>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div class="lg:col-span-2 glass p-5 rounded-2xl shadow-lg">
-                                <h3 class="font-bold mb-4 flex items-center gap-2 text-slate-200">
-                                    <i data-lucide="line-chart" class="w-4 h-4 text-brand-500"></i> Dòng Tiền (30 ngày)
-                                </h3>
-                                <div id="chart-trend" class="w-full h-64"></div>
-                            </div>
-                            <div class="glass p-5 rounded-2xl shadow-lg">
-                                <h3 class="font-bold mb-4 flex items-center gap-2 text-slate-200">
-                                    <i data-lucide="pie-chart" class="w-4 h-4 text-brand-500"></i> Phân Loại Chi Tiêu
-                                </h3>
-                                <div id="chart-category" class="w-full h-64"></div>
+                            <div class="glass p-6 rounded-2xl border-l-4 border-blue-500">
+                                <p class="text-gray-400 text-xs uppercase font-bold">Số dư</p>
+                                <h3 class="text-2xl font-bold text-blue-400">{{ formatVND(balance) }}</h3>
                             </div>
                         </div>
                     </div>
 
-                    <div v-if="currentTab === 'transactions'" class="space-y-6 animate-fade-in">
-                        <div class="glass p-6 rounded-2xl border border-brand-500/30 shadow-lg shadow-brand-500/10">
-                            <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-white">
-                                <i data-lucide="plus-circle" class="text-brand-500"></i> Thêm Giao Dịch
-                            </h2>
-                            <form @submit.prevent="addTransaction" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="col-span-2">
-                                    <div class="relative">
-                                        <span class="absolute left-4 top-3 text-brand-500 font-bold text-lg">{{ currencySymbol }}</span>
-                                        <input v-model.number="form.amount" type="number" placeholder="0" required class="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-2xl font-bold text-white focus:ring-2 focus:ring-brand-500 outline-none">
-                                    </div>
+                    <div v-if="currentTab === 'transactions'" class="space-y-6">
+                        <div class="glass p-6 rounded-2xl">
+                            <form @submit.prevent="addTx" class="grid grid-cols-1 gap-4">
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3 text-blue-500 font-bold">₫</span>
+                                    <input v-model.number="form.amount" type="number" placeholder="0" class="w-full bg-gray-800 border border-gray-700 rounded-xl py-3 pl-8 px-4 text-xl font-bold text-white focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
-                                <div>
-                                    <label class="text-xs text-slate-400 font-bold ml-1">Loại</label>
-                                    <div class="flex gap-2 mt-1">
-                                        <button type="button" @click="form.type = 'expense'" :class="['flex-1 py-2 rounded-lg font-medium transition', form.type === 'expense' ? 'bg-red-500/20 text-red-400 border border-red-500' : 'bg-slate-800 border border-slate-700 text-slate-400']">Chi tiêu</button>
-                                        <button type="button" @click="form.type = 'income'" :class="['flex-1 py-2 rounded-lg font-medium transition', form.type === 'income' ? 'bg-green-500/20 text-green-400 border border-green-500' : 'bg-slate-800 border border-slate-700 text-slate-400']">Thu nhập</button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-xs text-slate-400 font-bold ml-1">Danh mục</label>
-                                    <select v-model="form.category" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg py-2.5 px-3 text-white focus:ring-2 focus:ring-brand-500 outline-none">
-                                        <option v-for="cat in categories[form.type]" :key="cat" :value="cat">{{ cat }}</option>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <select v-model="form.type" class="bg-gray-800 border border-gray-700 rounded-lg p-3 outline-none">
+                                        <option value="expense">Chi tiêu</option>
+                                        <option value="income">Thu nhập</option>
                                     </select>
+                                    <input v-model="form.date" type="date" class="bg-gray-800 border border-gray-700 rounded-lg p-3 outline-none text-white">
                                 </div>
-                                <div>
-                                    <label class="text-xs text-slate-400 font-bold ml-1">Ngày</label>
-                                    <input v-model="form.date" type="date" required class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white focus:ring-2 focus:ring-brand-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-slate-400 font-bold ml-1">Ghi chú (Tùy chọn)</label>
-                                    <input v-model="form.note" type="text" placeholder="Ví dụ: Ăn trưa" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded-lg py-2 px-3 text-white focus:ring-2 focus:ring-brand-500 outline-none">
-                                </div>
-                                <button type="submit" class="col-span-1 md:col-span-2 mt-2 w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
-                                    <i data-lucide="save" class="w-5 h-5"></i> Lưu Giao Dịch
-                                </button>
+                                <input v-model="form.note" placeholder="Mua gì? (Ví dụ: Cà phê)" class="bg-gray-800 border border-gray-700 rounded-lg p-3 outline-none text-white">
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl">Lưu Giao Dịch</button>
                             </form>
                         </div>
-
-                        <div class="glass rounded-2xl overflow-hidden">
-                            <div class="p-4 border-b border-white/5 bg-white/5 flex justify-between items-center">
-                                <h3 class="font-bold text-white">Lịch sử giao dịch</h3>
-                                <span class="text-xs text-slate-400">{{ transactions.length }} mục</span>
-                            </div>
-                            <div class="max-h-[500px] overflow-y-auto">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-slate-800/50 text-slate-400 sticky top-0 backdrop-blur-md">
-                                        <tr>
-                                            <th class="p-4 font-medium">Ngày</th>
-                                            <th class="p-4 font-medium">Nội dung</th>
-                                            <th class="p-4 font-medium text-right">Số tiền</th>
-                                            <th class="p-4 w-10"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-700/50">
-                                        <tr v-for="tx in sortedTransactions" :key="tx.id" class="hover:bg-white/5 transition-colors">
-                                            <td class="p-4 text-slate-400 whitespace-nowrap">{{ formatDate(tx.date) }}</td>
-                                            <td class="p-4">
-                                                <div class="font-bold text-white">{{ tx.category }}</div>
-                                                <div class="text-xs text-slate-500">{{ tx.note }}</div>
-                                            </td>
-                                            <td :class="['p-4 font-bold text-right whitespace-nowrap', tx.type === 'income' ? 'text-green-400' : 'text-red-400']">
-                                                {{ tx.type === 'income' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
-                                            </td>
-                                            <td class="p-4 text-right">
-                                                <button @click="deleteTransaction(tx.id)" class="text-slate-500 hover:text-red-400 transition-colors p-1">
-                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="transactions.length === 0">
-                                            <td colspan="4" class="p-8 text-center text-slate-500">Chưa có giao dịch nào.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        
+                        <div class="space-y-2">
+                            <div v-for="tx in sortedTxs" :key="tx.id" class="glass p-4 rounded-xl flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold">{{ tx.note || 'Không tên' }}</p>
+                                    <p class="text-xs text-gray-400">{{ tx.date }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p :class="tx.type==='income'?'text-green-400':'text-red-400'" class="font-bold">
+                                        {{ tx.type==='income' ? '+' : '-' }}{{ formatVND(tx.amount) }}
+                                    </p>
+                                    <button @click="delTx(tx.id)" class="text-xs text-gray-500 underline">Xóa</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div v-if="currentTab === 'settings'" class="glass p-6 rounded-2xl space-y-6 animate-fade-in">
-                        <h2 class="text-xl font-bold text-white mb-4">Cài Đặt</h2>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-300 mb-2">Đơn vị tiền tệ</label>
-                            <select v-model="currencySymbol" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white outline-none">
-                                <option value="₫">Việt Nam Đồng (₫)</option>
-                                <option value="$">Đô la Mỹ ($)</option>
-                                <option value="€">Euro (€)</option>
-                                <option value="¥">Yên Nhật (¥)</option>
-                            </select>
-                        </div>
-                        <div class="pt-4 border-t border-white/10">
-                            <p class="text-xs text-slate-500 mb-2">Dữ liệu được đồng bộ hóa với:</p>
-                            <code class="block bg-slate-900 p-3 rounded-lg text-xs text-green-400 font-mono break-all">
-                                {{ firebaseConfig.projectId }}
-                            </code>
-                        </div>
-                    </div>
-
                 </div>
 
-                <nav class="md:hidden glass border-t border-white/5 flex justify-around items-center px-2 h-16 z-30 shrink-0 absolute bottom-0 w-full pb-safe">
-                    <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id" 
-                        :class="['flex flex-col items-center gap-1 p-2 rounded-xl transition-all', currentTab === tab.id ? 'text-brand-500' : 'text-slate-500']">
-                        <i :data-lucide="tab.icon" class="w-6 h-6"></i>
-                        <span class="text-[10px] font-medium">{{ tab.label }}</span>
+                <nav class="md:hidden glass fixed bottom-0 w-full h-16 flex justify-around items-center border-t border-white/5 pb-safe">
+                    <button v-for="tab in tabs" :key="tab.id" @click="currentTab=tab.id" :class="currentTab===tab.id?'text-blue-500':'text-gray-500'">
+                        <i :data-lucide="tab.icon"></i>
                     </button>
                 </nav>
             </main>
@@ -282,9 +152,9 @@
     </div>
 
     <script>
-        const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+        const { createApp, ref, computed, onMounted } = Vue;
 
-        // --- 1. CẤU HÌNH FIREBASE CỦA BẠN (ĐÃ ĐƯỢC NHÚNG) ---
+        // CẤU HÌNH FIREBASE CỦA BẠN
         const firebaseConfig = {
             apiKey: "AIzaSyDmV3I9ZQ-N866cZ5mzMhVLNHcKjfL8cQ0",
             authDomain: "financial-tracking-app-bb3cb.firebaseapp.com",
@@ -292,173 +162,82 @@
             projectId: "financial-tracking-app-bb3cb",
             storageBucket: "financial-tracking-app-bb3cb.firebasestorage.app",
             messagingSenderId: "242060161334",
-            appId: "1:242060161334:web:e9a4e0c7f8758cd9770397",
-            measurementId: "G-NV4B6CWRBS"
+            appId: "1:242060161334:web:e9a4e0c7f8758cd9770397"
         };
 
-        // Khởi tạo Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
+        // Khởi tạo an toàn (tránh crash web)
+        let auth, db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.database();
+        } catch (e) {
+            console.error("Firebase lỗi:", e);
+            document.getElementById('error-msg').style.display = 'block';
+            document.getElementById('error-msg').innerText += " " + e.message;
+        }
 
         createApp({
             setup() {
-                // --- STATE ---
                 const user = ref(null);
                 const currentTab = ref('dashboard');
-                const transactions = ref([]);
-                const currencySymbol = ref('₫');
-                
-                const form = ref({
-                    date: new Date().toISOString().split('T')[0],
-                    type: 'expense',
-                    category: 'Ăn uống',
-                    amount: '',
-                    note: ''
-                });
-
-                const categories = {
-                    expense: ['Ăn uống', 'Di chuyển', 'Nhà cửa', 'Mua sắm', 'Giải trí', 'Sức khỏe', 'Hóa đơn', 'Khác'],
-                    income: ['Lương', 'Thưởng', 'Đầu tư', 'Bán hàng', 'Quà tặng', 'Khác']
-                };
+                const loginError = ref('');
+                const txs = ref([]);
+                const form = ref({ amount: '', type: 'expense', date: new Date().toISOString().split('T')[0], note: '' });
 
                 const tabs = [
                     { id: 'dashboard', label: 'Tổng quan', icon: 'layout-dashboard' },
-                    { id: 'transactions', label: 'Giao dịch', icon: 'list-plus' },
-                    { id: 'settings', label: 'Cài đặt', icon: 'settings' }
+                    { id: 'transactions', label: 'Giao dịch', icon: 'list-plus' }
                 ];
 
-                // --- COMPUTED ---
-                const sortedTransactions = computed(() => {
-                    return [...transactions.value].sort((a, b) => new Date(b.date) - new Date(a.date));
-                });
-
-                const totalIncome = computed(() => transactions.value.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0));
-                const totalExpense = computed(() => transactions.value.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0));
-                const balance = computed(() => totalIncome.value - totalExpense.value);
-
-                // --- METHODS ---
-                const login = () => {
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    auth.signInWithPopup(provider).catch(alert);
-                };
-
-                const logout = () => auth.signOut();
-
-                const formatCurrency = (val) => {
-                    return new Intl.NumberFormat('vi-VN').format(val) + ' ' + currencySymbol.value;
-                };
-
-                const formatDate = (dateStr) => {
-                    const [y, m, d] = dateStr.split('-');
-                    return `${d}/${m}/${y}`;
-                };
-
-                const addTransaction = () => {
-                    if (!user.value) return;
-                    const newTx = {
-                        id: Date.now(),
-                        ...form.value,
-                        amount: Number(form.value.amount) // Đảm bảo là số
-                    };
-                    
-                    // Gửi lên Firebase
-                    db.ref(`users/${user.value.uid}/transactions`).push(newTx);
-                    
-                    // Reset form
-                    form.value.amount = '';
-                    form.value.note = '';
-                    alert('Đã lưu giao dịch!');
-                };
-
-                const deleteTransaction = (id) => {
-                    if (!confirm('Bạn có chắc muốn xóa?')) return;
-                    // Tìm key trong Firebase để xóa
-                    db.ref(`users/${user.value.uid}/transactions`).orderByChild('id').equalTo(id).once('value', snapshot => {
-                        snapshot.forEach(child => child.ref.remove());
-                    });
-                };
-
-                // --- CHART LOGIC ---
-                const renderCharts = () => {
-                    if (currentTab.value !== 'dashboard') return;
-                    
-                    nextTick(() => {
-                        const layoutConfig = {
-                            paper_bgcolor: 'rgba(0,0,0,0)',
-                            plot_bgcolor: 'rgba(0,0,0,0)',
-                            font: { color: '#94a3b8' },
-                            margin: { t: 0, b: 40, l: 40, r: 20 },
-                            showlegend: false,
-                            xaxis: { showgrid: false },
-                            yaxis: { showgrid: true, gridcolor: '#334155' }
-                        };
-
-                        // 1. Trend Chart Data
-                        // (Đơn giản hóa: gom nhóm theo ngày)
-                        const days = {};
-                        transactions.value.forEach(t => {
-                            if (!days[t.date]) days[t.date] = 0;
-                            days[t.date] += (t.type === 'income' ? t.amount : -t.amount);
-                        });
-                        const sortedDates = Object.keys(days).sort();
-                        
-                        Plotly.newPlot('chart-trend', [{
-                            x: sortedDates,
-                            y: sortedDates.map(d => days[d]),
-                            type: 'scatter',
-                            mode: 'lines+markers',
-                            line: { color: '#3B82F6', width: 3, shape: 'spline' },
-                            marker: { color: '#10B981', size: 6 }
-                        }], layoutConfig);
-
-                        // 2. Category Donut Data
-                        const catData = {};
-                        transactions.value.filter(t => t.type === 'expense').forEach(t => {
-                            catData[t.category] = (catData[t.category] || 0) + t.amount;
-                        });
-
-                        Plotly.newPlot('chart-category', [{
-                            labels: Object.keys(catData),
-                            values: Object.values(catData),
-                            type: 'pie',
-                            hole: 0.6,
-                            textinfo: 'label+percent',
-                            marker: { colors: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6'] }
-                        }], { ...layoutConfig, showlegend: true });
-                    });
-                };
-
-                // --- LIFECYCLE ---
-                onMounted(() => {
+                // Auth Listener
+                if(auth) {
                     auth.onAuthStateChanged(u => {
                         user.value = u;
-                        if (u) {
-                            // Lắng nghe dữ liệu Realtime khi đã login
-                            db.ref(`users/${u.uid}/transactions`).on('value', snapshot => {
-                                const val = snapshot.val();
-                                transactions.value = val ? Object.values(val) : [];
-                                renderCharts();
-                            });
-                        } else {
-                            transactions.value = [];
-                        }
+                        if(u) loadData(u.uid);
+                        else txs.value = [];
                     });
-                    lucide.createIcons();
-                });
+                }
 
-                watch([transactions, currentTab], () => {
-                    if (currentTab.value === 'dashboard') renderCharts();
-                    setTimeout(() => lucide.createIcons(), 100);
-                });
-
-                return {
-                    user, tabs, currentTab, form, categories,
-                    transactions, sortedTransactions,
-                    totalIncome, totalExpense, balance, currencySymbol, firebaseConfig,
-                    login, logout, addTransaction, deleteTransaction,
-                    formatCurrency, formatDate
+                const loadData = (uid) => {
+                    db.ref(`users/${uid}/txs`).on('value', snap => {
+                        const val = snap.val();
+                        txs.value = val ? Object.values(val) : [];
+                    });
                 };
+
+                const login = () => {
+                    if(!auth) return;
+                    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+                        .catch(err => loginError.value = err.message);
+                };
+                const logout = () => auth.signOut();
+
+                const addTx = () => {
+                    if(!form.value.amount) return;
+                    const newTx = { ...form.value, id: Date.now() };
+                    db.ref(`users/${user.value.uid}/txs`).push(newTx);
+                    form.value.amount = ''; form.value.note = '';
+                    alert("Đã lưu!");
+                };
+
+                const delTx = (id) => {
+                    if(confirm("Xóa nhé?")) {
+                        db.ref(`users/${user.value.uid}/txs`).orderByChild('id').equalTo(id).once('value', s => s.forEach(c => c.ref.remove()));
+                    }
+                };
+
+                const sortedTxs = computed(() => [...txs.value].sort((a,b) => new Date(b.date) - new Date(a.date)));
+                const totalIncome = computed(() => txs.value.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0));
+                const totalExpense = computed(() => txs.value.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0));
+                const balance = computed(() => totalIncome.value - totalExpense.value);
+                const formatVND = (n) => new Intl.NumberFormat('vi-VN').format(n) + '₫';
+
+                onMounted(() => {
+                    if(window.lucide) lucide.createIcons();
+                });
+
+                return { user, tabs, currentTab, login, logout, loginError, form, addTx, delTx, sortedTxs, totalIncome, totalExpense, balance, formatVND };
             }
         }).mount('#app');
     </script>
